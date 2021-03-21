@@ -13,6 +13,11 @@ CORS(app)
 
 appController = AppController()
 
+@app.route('/')
+def index():
+    return "<h1>Welcome to our server !!</h1>"
+
+
 @app.route("/routeGetDatasetsInfo", methods=['POST'])
 def getDatasetsInfo():
     return jsonify({
