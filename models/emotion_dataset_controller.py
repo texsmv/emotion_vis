@@ -36,24 +36,32 @@ class AppController:
         self.loadedDatasets = []
         self.localDatasetsIds = ["case", "wesad"]
         self.datasets = {}
+        # this info is changed according to the proccesing make on the original data
+        self.datasetsInfo = {}
+        
     
     def loadLocalDataset(self, datasetId):
         if datasetId in self.loadedDatasets:
             return False
         
         if datasetId == "wesad":
+            path_info = wesad_path_info
             paths = wesad_paths
         elif datasetId == "case":
             paths = case_paths
             
         self.datasets[datasetId] = MTSerieDataset()
 
+        self.initializeDataset()
+
+        with open('datasets/'+ path_info, 'r') as file:
+            dataInfoJson = file.read()
+        self.initializeDataset(dataInfoJson)
         for path in paths:
             with open(DATASET_PATH + path, 'r') as file:
                 jsonStr = file.read()
                 self.addMtserieFromString(datasetId, jsonStr)
                 
-        self.loadedDatasets.append(datasetId)
         return True
                 
     def addMtserieFromString(self, datasetId, eml):
@@ -70,11 +78,13 @@ class AppController:
         self.loadedDatasets.remove(datasetId)
         return True
 
-    def initializeDataset(self, datasetId):
-        # todo : add this
-        # if datasetId in self.loadedDatasets:
-        #     return False
+    def initializeDataset(self, jsonStr):
+        infoDict = json.loads(jsonStr)
+        datasetId = infoDict["id"]
+        if datasetId in self.loadedDatasets:
+            return False
         self.datasets[datasetId] = MTSerieDataset()
+        self.datasetsInfo[datasetId] = infoDict
         self.loadedDatasets.append(datasetId)
         return True
 
@@ -109,41 +119,55 @@ class AppController:
         mtserieMap["categoricalLabels"] = list(mtserie.categoricalFeatures.keys())
         mtserieMap["numericalLabels"] = list(mtserie.numericalFeatures.keys())
         return mtserieMap
+
+
+    def getDatasetEmotionValues(self, datasetId, field):
+        # field can be either 'min' or 'max'
+        emotionsInfo = self.datasetsInfo[datasetId]["vocabulary"]["emotions"]
+        return {emotionsInfo[emotion][field] for emotion in emotionsInfo.keys()}
+
+    def getDatasetEmotions(self, datasetId, field):
+        return list(self.datasetsInfo[datasetId]["vocabulary"]["emotions"].keys())
+
     
-    def getDatasetInfo(self, datasetId, procesed = True):
+    # * now it only gets the procesed info, which is the same as original at the begin
+    def getDatasetInfo(self, datasetId):
         dataInfo = {}
         dataInfo[INFO_IDS] = self.datasets[datasetId].ids
-        dataInfo[INFO_MIN_VALUES] = self.datasets[datasetId].minTemporalValues
-        dataInfo[INFO_MAX_VALUES] = self.datasets[datasetId].maxTemporalValues
+        dataInfo[INFO_MIN_VALUES] = self.getDatasetEmotionValues('min')
+        dataInfo[INFO_MAX_VALUES] = self.getDatasetEmotionValues('max')
         dataInfo[INFO_LEN_INSTANCE] = self.datasets[datasetId].instanceLen
         dataInfo[INFO_LEN_VARIABLES] = self.datasets[datasetId].variablesLen
-        dataInfo[INFO_LEN_TIME] = self.datasets[datasetId].get_timeLen(procesed)
-        dataInfo[INFO_SERIES_LABELS] = self.datasets[datasetId].temporalVariables
+        dataInfo[INFO_LEN_TIME] = self.datasets[datasetId].get_timeLen(procesed=True)
+        dataInfo[INFO_SERIES_LABELS] = self.getDatasetEmotions(datasetId)
         dataInfo[INFO_IS_DATED] = self.datasets[datasetId].isDataDated
         if self.datasets[datasetId].isDataDated:
-            print(procesed)
-            dataInfo[INFO_DATES] = [str(date) for date in self.datasets[datasetId].get_datetimes(procesed)]
+            dataInfo[INFO_DATES] = [str(date) for date in self.datasets[datasetId].get_datetimes(procesed=True)]
             dataInfo[INFO_DOWNSAMPLE_RULES] = self.datasets[datasetId].allowedDownsampleRules
         return dataInfo
     
-    def compute_D_k(self, datasetId, variables, procesed = True, distanceType = DistanceType.EUCLIDEAN):
-        D_k = compute_k_distance_matrixes(self.datasets[datasetId].get_mtseries(procesed= procesed), variables, distanceType)
+    def compute_D_k(self, datasetId, begin, end, distanceType = DistanceType.EUCLIDEAN):
+        D_k = compute_k_distance_matrixes(self.datasets[datasetId].query_all_by_range(begin, end), variables, distanceType)
         return D_k
     
-    def getMdsProjection(self, datasetId, D_k, alphas, oldCoors = None):
+    def getMdsProjection(self, datasetId, begin, end, alphas, oldCoors = None, D_k = None, distanceType = DistanceType.EUCLIDEAN):
         
         # self.dataset.compute_distance_matrix(variables=variables,
         #                                      alphas=alphas,
         #                                      distanceType= DistanceType.EUCLIDEAN,
-        #                                      )
+        #  
+        _D_k = D_k
+
+        # compute D_K if not previously calculated
+        if _D_k == None:
+            _D_k = compute_D_k(datasetId, begin, end, distanceType)
         
-        # D_k = compute_k_distance_matrixes(self.datasets[datasetId].get_mtseries(procesed= procesed), variables, distanceType)
-        D = compute_distance_matrix(D_k, alphas, self.datasets[datasetId].instanceLen)
+        D = compute_distance_matrix(_D_k, alphas, self.datasets[datasetId].instanceLen)
         self.datasets[datasetId].compute_projection(D)
         
         coords = np.array([self.datasets[datasetId]._projections[id] for id in self.datasets[datasetId].ids])
         
-        if isinstance(self.datasets[datasetId].oldCoords, np.ndarray): 
+        if isinstance(oldCoords, np.ndarray): 
             P = coords
             Q = self.oldCoords
             A = P.transpose().dot(Q)
@@ -154,14 +178,13 @@ class AppController:
             R = v.dot(np.array([[1, 0], [0, r]])).dot(ut)
             coords = R.dot(P.transpose()).transpose()
         
+        # return coords as dict
         coordsDict = {}
         ids = self.datasets[datasetId].ids
         for i in range(len(ids)):
             id = ids[i]
             coordsDict[id] = coords[i].tolist()
-        
-        self.oldCoords = coords
-        
+
         return coordsDict
     
     def doClustering(self, datasetId, coords, k = 4):

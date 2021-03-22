@@ -1,4 +1,4 @@
-
+wesad_path_info = "WESAD/wesad_info.json"
 wesad_paths = [
     "WESAD/s10.json",
     "WESAD/s11.json",
