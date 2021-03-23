@@ -1,3 +1,9 @@
+from local_datasets_info import *
+from mts.core.projections import euclidean_distance_matrix, mds_projection, mp_distance_matrix, compute_k_distance_matrixes, compute_distance_matrix
+from mts.core.utils import mtserieQueryToJsonStr, subsetSeparationRanking, fishersDiscriminantRanking
+from mts.core.distances import DistanceType, ts_euclidean_distance
+from utils.utils import mtserie_from_json
+from mts.core.mtserie_dataset import MTSerieDataset
 from numpy.lib.index_tricks import CClass
 from mts.core.mtserie import MTSerie
 import numpy as np
@@ -6,12 +12,6 @@ import json
 
 sys.path.append("..")
 
-from mts.core.mtserie_dataset import MTSerieDataset
-from utils.utils import mtserie_from_json
-from mts.core.distances import DistanceType, ts_euclidean_distance
-from mts.core.utils import mtserieQueryToJsonStr, subsetSeparationRanking, fishersDiscriminantRanking
-from mts.core.projections import euclidean_distance_matrix, mds_projection, mp_distance_matrix, compute_k_distance_matrixes, compute_distance_matrix
-from local_datasets_info import *
 
 INFO_MIN_VALUES = "globalEmotionMin"
 INFO_MAX_VALUES = "globalEmotionMax"
@@ -31,6 +31,7 @@ SETTINGS_UPPER_BOUNDS = "globalEmotionUpperBound"
 
 DATASET_PATH = "datasets/"
 
+
 class AppController:
     def __init__(self):
         self.loadedDatasets = []
@@ -38,42 +39,40 @@ class AppController:
         self.datasets = {}
         # this info is changed according to the proccesing make on the original data
         self.datasetsInfo = {}
-        
-    
+
     def loadLocalDataset(self, datasetId):
         if datasetId in self.loadedDatasets:
             return False
-        
+
         if datasetId == "wesad":
             path_info = wesad_path_info
             paths = wesad_paths
         elif datasetId == "case":
+            path_info = case_path_info
             paths = case_paths
-            
-        self.datasets[datasetId] = MTSerieDataset()
 
-        self.initializeDataset()
-
-        with open('datasets/'+ path_info, 'r') as file:
+        with open('datasets/' + path_info, 'r') as file:
             dataInfoJson = file.read()
         self.initializeDataset(dataInfoJson)
+
         for path in paths:
             with open(DATASET_PATH + path, 'r') as file:
                 jsonStr = file.read()
+                print(path)
                 self.addMtserieFromString(datasetId, jsonStr)
-                
+
         return True
-                
+
     def addMtserieFromString(self, datasetId, eml):
         mtserie = mtserie_from_json(eml)
         id = mtserie.info["id"]
         self.datasets[datasetId].add(mtserie, id)
         return id
-    
+
     def removeDataset(self, datasetId):
         if not datasetId in self.loadedDatasets:
             return False
-        
+
         del self.datasets[datasetId]
         self.loadedDatasets.remove(datasetId)
         return True
@@ -96,15 +95,17 @@ class AppController:
         id = mtserie.info["id"]
         self.datasets[datasetId].add(mtserie, id)
         return True
-    
-    def getMTSeriesInRange(self, datasetId, ids, begin, end, procesed = True):
-        query = self.datasets[datasetId].get_mtseries_in_range(begin, end, ids, procesed)
-        resultMap = {id: self.mtserieToMap(query[id]) for id in list(query.keys())}
+
+    def getMTSeriesInRange(self, datasetId, ids, begin, end):
+        query = self.datasets[datasetId].get_mtseries_in_range(
+            begin, end, ids, procesed=True)
+        resultMap = {id: self.mtserieToMap(
+            query[id]) for id in list(query.keys())}
         return resultMap
-    
+
     def downsampleDataset(self, datasetId, rule):
         self.datasets[datasetId].downsample_data(rule)
-        
+
     def mtserieToMap(self, mtserie):
         assert isinstance(mtserie, MTSerie)
         mtserieMap = {}
@@ -114,62 +115,72 @@ class AppController:
         mtserieMap["temporalVariables"] = temporalVariables
         mtserieMap["index"] = [str(idx) for idx in mtserie.dataframe.index]
         mtserieMap["metadata"] = mtserie.info
-        mtserieMap["categoricalFeatures"] = list(mtserie.categoricalFeatures.values())
-        mtserieMap["numericalFeatures"] = list(mtserie.numericalFeatures.values())
-        mtserieMap["categoricalLabels"] = list(mtserie.categoricalFeatures.keys())
+        mtserieMap["categoricalFeatures"] = list(
+            mtserie.categoricalFeatures.values())
+        mtserieMap["numericalFeatures"] = list(
+            mtserie.numericalFeatures.values())
+        mtserieMap["categoricalLabels"] = list(
+            mtserie.categoricalFeatures.keys())
         mtserieMap["numericalLabels"] = list(mtserie.numericalFeatures.keys())
         return mtserieMap
-
 
     def getDatasetEmotionValues(self, datasetId, field):
         # field can be either 'min' or 'max'
         emotionsInfo = self.datasetsInfo[datasetId]["vocabulary"]["emotions"]
-        return {emotionsInfo[emotion][field] for emotion in emotionsInfo.keys()}
+        return {emotion: emotionsInfo[emotion][field] for emotion in emotionsInfo.keys()}
 
-    def getDatasetEmotions(self, datasetId, field):
+    def getDatasetEmotions(self, datasetId):
         return list(self.datasetsInfo[datasetId]["vocabulary"]["emotions"].keys())
 
-    
     # * now it only gets the procesed info, which is the same as original at the begin
+
     def getDatasetInfo(self, datasetId):
         dataInfo = {}
         dataInfo[INFO_IDS] = self.datasets[datasetId].ids
-        dataInfo[INFO_MIN_VALUES] = self.getDatasetEmotionValues('min')
-        dataInfo[INFO_MAX_VALUES] = self.getDatasetEmotionValues('max')
+        dataInfo[INFO_MIN_VALUES] = self.getDatasetEmotionValues(
+            datasetId, 'min')
+        dataInfo[INFO_MAX_VALUES] = self.getDatasetEmotionValues(
+            datasetId, 'max')
         dataInfo[INFO_LEN_INSTANCE] = self.datasets[datasetId].instanceLen
         dataInfo[INFO_LEN_VARIABLES] = self.datasets[datasetId].variablesLen
-        dataInfo[INFO_LEN_TIME] = self.datasets[datasetId].get_timeLen(procesed=True)
+        dataInfo[INFO_LEN_TIME] = self.datasets[datasetId].get_timeLen(
+            procesed=True)
         dataInfo[INFO_SERIES_LABELS] = self.getDatasetEmotions(datasetId)
         dataInfo[INFO_IS_DATED] = self.datasets[datasetId].isDataDated
         if self.datasets[datasetId].isDataDated:
-            dataInfo[INFO_DATES] = [str(date) for date in self.datasets[datasetId].get_datetimes(procesed=True)]
+            dataInfo[INFO_DATES] = [
+                str(date) for date in self.datasets[datasetId].get_datetimes(procesed=True)]
             dataInfo[INFO_DOWNSAMPLE_RULES] = self.datasets[datasetId].allowedDownsampleRules
         return dataInfo
-    
-    def compute_D_k(self, datasetId, begin, end, distanceType = DistanceType.EUCLIDEAN):
-        D_k = compute_k_distance_matrixes(self.datasets[datasetId].query_all_by_range(begin, end), variables, distanceType)
+
+    def compute_D_k(self, datasetId, begin, end, variables, distanceType=DistanceType.EUCLIDEAN):
+        D_k = compute_k_distance_matrixes(list(self.datasets[datasetId].get_mtseries_in_range(
+            begin, end).values()), variables, distanceType)
         return D_k
-    
-    def getMdsProjection(self, datasetId, begin, end, alphas, oldCoors = None, D_k = None, distanceType = DistanceType.EUCLIDEAN):
-        
+
+    def getMdsProjection(self, datasetId, begin, end, alphas, oldCoords=None, D_k=None, distanceType=DistanceType.EUCLIDEAN):
+
         # self.dataset.compute_distance_matrix(variables=variables,
         #                                      alphas=alphas,
         #                                      distanceType= DistanceType.EUCLIDEAN,
-        #  
+        #
         _D_k = D_k
 
         # compute D_K if not previously calculated
         if _D_k == None:
-            _D_k = compute_D_k(datasetId, begin, end, distanceType)
-        
-        D = compute_distance_matrix(_D_k, alphas, self.datasets[datasetId].instanceLen)
+            _D_k = self.compute_D_k(
+                datasetId, begin, end, self.getDatasetEmotions(datasetId), distanceType)
+
+        D = compute_distance_matrix(
+            _D_k, alphas, self.datasets[datasetId].instanceLen)
         self.datasets[datasetId].compute_projection(D)
-        
-        coords = np.array([self.datasets[datasetId]._projections[id] for id in self.datasets[datasetId].ids])
-        
-        if isinstance(oldCoords, np.ndarray): 
+
+        coords = np.array([self.datasets[datasetId]._projections[id]
+                          for id in self.datasets[datasetId].ids])
+
+        if isinstance(oldCoords, np.ndarray):
             P = coords
-            Q = self.oldCoords
+            Q = oldCoords
             A = P.transpose().dot(Q)
             u, s, vt = np.linalg.svd(A, full_matrices=True)
             v = vt.transpose()
@@ -177,7 +188,7 @@ class AppController:
             r = np.sign(np.linalg.det(v.dot(ut)))
             R = v.dot(np.array([[1, 0], [0, r]])).dot(ut)
             coords = R.dot(P.transpose()).transpose()
-        
+
         # return coords as dict
         coordsDict = {}
         ids = self.datasets[datasetId].ids
@@ -185,190 +196,43 @@ class AppController:
             id = ids[i]
             coordsDict[id] = coords[i].tolist()
 
-        return coordsDict
-    
-    def doClustering(self, datasetId, coords, k = 4):
+        return coordsDict, _D_k
+
+    def doClustering(self, datasetId, coords, k=4):
         clusters = self.datasets[datasetId].cluster_projections(k, coords)
         return clusters
-    
+
     def getFishersDiscriminantRanking(self, datasetId, D_ks, blueCluster, redCluster):
         ids = self.datasets[datasetId].ids
-        
+
         blueIndexes = [ids.index(e) for e in blueCluster]
         redIndexes = [ids.index(e) for e in redCluster]
-        
+
         j_s = fishersDiscriminantRanking(D_ks, blueIndexes, redIndexes)
         variablesRanks = {}
         variables = list(D_ks.keys())
         for varName in variables:
             variablesRanks[varName] = j_s[varName]
         return variablesRanks
-    
-    
-class EmotionDatasetController:
-    def __init__(self):
-        self.dataset =  MTSerieDataset()
-        self.dataInfo = {}
-        self.dataSettings = {}
-        
-        #! deprecated
-        self.minValue = None
-        self.maxValue = None
-        self.oldCoords = None
-        self.D_k = None
-        super().__init__()
-        
-    def downsampleData(self, rule):
-        self.dataset.downsample_data(rule)
-        
-    def computeDataInfo(self):
-        self.dataInfo[INFO_MIN_VALUES] = self.dataset.minTemporalValues
-        self.dataInfo[INFO_MAX_VALUES] = self.dataset.maxTemporalValues
-        self.dataInfo[INFO_LEN_INSTANCE] = self.dataset.instanceLen
-        self.dataInfo[INFO_LEN_VARIABLES] = self.dataset.variablesLen
-        self.dataInfo[INFO_LEN_TIME] = self.dataset.timeLen
-        self.dataInfo[INFO_SERIES_LABELS] = self.dataset.temporalVariables
-        self.dataInfo[INFO_IS_DATED] = self.dataset.isDataDated
-        if self.dataset.isDataDated:
-            self.dataInfo[INFO_DATES] = [str(date) for date in self.dataset.datetimes]
-            self.dataInfo[INFO_DOWNSAMPLE_RULES] = self.dataset.allowedDownsampleRules
 
-    def setSettings(self, settings):
-        self.dataSettings = settings
-        print(self.dataSettings)
+    def getTemporalSummary(self, datasetId):
+        values = self.datasets[datasetId].values()
+        values = np.transpose(values, (2, 1, 0))  # to D, T, N shape
+        summary = {}
+        emotions = self.getDatasetEmotions(datasetId)
+        summary['min'] = {}
+        for i in range(len(emotions)):
+            summary['min'][emotions[i]] = values[i].min(axis=0).tolist()
 
-    def addEml(self, eml):
-        mtserie = mtserie_from_json(eml)
-        assert isinstance(mtserie, MTSerie)
-        id = mtserie.info["id"]
-        self.dataset.add(mtserie, id)
-        return id
-        
-    def getIds(self):
-        return self.dataset.ids()
-    
-    def removeVariables(self, names):
-        for name in names:
-            self.dataset.removeVariable(name)
-        
-    
-    def calculateValuesBounds(self):
-        X = self.dataset.getValues()
-        assert isinstance(X, np.ndarray)
-        self.minValue = X.min()
-        self.maxValue = X.max()
-        
-    def getValuesBounds(self):
-        if self.minValue != None and self.maxValue != None:
-            return [self.minValue, self.maxValue]
-        return [-1 ,-1]
-    
-    def setValuesBounds(self, minVal, maxVal):
-        self.minValue = minVal
-        self.maxValue = maxVal
-    
-    def getAllValuesInRange(self, begin, end):
-        return self.dataset.queryAllByIndex(beginIndex=begin, endIndex=end, toList=True)
-    
-    def getTimeLength(self):
-        return self.dataset.getTimeLength()
-    
-    def getInstanceLength(self):
-        return self.dataset.getInstanceLength()
-    
-    def getVariablesNames(self):
-        return self.dataset.getVariablesNames()
-    
-    def getNumericalLabels(self):
-        return self.dataset.getNumericalLabels()
+        summary['max'] = {}
+        for i in range(len(emotions)):
+            summary['max'][emotions[i]] = values[i].max(axis=0).tolist()
 
-    def getCategoricalLabels(self):
-        return self.dataset.getCategoricalLabels()
-    
-    def queryAllInRange(self, begin, end):
-        indexBegin = self.dataset.first.dataframe.index[begin]
-        indexEnd = self.dataset.first.dataframe.index[end]
-        result = self.dataset.query_all_by_range(indexBegin, indexEnd)
-        print(result)
-        resultMap = {id: self.mtserieToMap(result[id]) for id in list(result.keys())}
-        print(resultMap)
-        #  mtserieQueryToJsonStr(self.dataset.queryAllByIndex(begin, end, toList=True))
-        return resultMap
-    
-    def mtserieToMap(self, mtserie):
-        assert isinstance(mtserie, MTSerie)
-        mtserieMap = {}
-        temporalVariables = {}
-        for varName in mtserie.labels:
-            temporalVariables[varName] = list(mtserie.get_serie(varName))
-        mtserieMap["temporalVariables"] = temporalVariables
-        mtserieMap["index"] = [str(idx) for idx in mtserie.dataframe.index]
-        mtserieMap["metadata"] = mtserie.info
-        mtserieMap["categoricalFeatures"] = list(mtserie.categoricalFeatures.values())
-        mtserieMap["numericalFeatures"] = list(mtserie.numericalFeatures.values())
-        mtserieMap["categoricalLabels"] = list(mtserie.categoricalFeatures.keys())
-        mtserieMap["numericalLabels"] = list(mtserie.numericalFeatures.keys())
-        return mtserieMap
-        
-    def getSubsetsDimensionsRankings(self, blueCluster, redCluster):
-        ids = self.dataset.ids
-        
-        blueIndexes = [ids.index(e) for e in blueCluster]
-        redIndexes = [ids.index(e) for e in redCluster]
-        
-        j_s = subsetSeparationRanking(self.D_k, blueIndexes, redIndexes)
-        variablesRanks = {}
-        vnames = self.dataSettings[SETTINGS_EMOTIONS_LABELS]
-        for i in range(len(vnames)):
-            variablesRanks[vnames[i]] = j_s[i]
-        return variablesRanks
-    
-    def doClustering(self, k = 4):
-        self.dataset.cluster_projections(k)
-        return {str(clusterLabel.item()): self.dataset._clusters[clusterLabel] for clusterLabel in list(self.dataset._clusters.keys())}
-    
-    
-    def mdsProjection(self, variables):
-        alphas = self.dataSettings[SETTINGS_ALPHAS]
-        
-        self.dataset.compute_distance_matrix(variables=variables,
-                                             alphas=alphas,
-                                             distanceType= DistanceType.EUCLIDEAN,
-                                             )
-        self.dataset.compute_projection()
-        
-        self.D_k = self.dataset.distanceMatrix_k
-        
-        # D, self.D_k = euclidean_distance_matrix(list(self.dataset._timeSeries.values()), self.getVariablesNames(), alphas)
-        # D, self.D_k = mp_distance_matrix(list(self.dataset._timeSeries.values()), self.getVariablesNames(), alphas, 12)
-        self.D_k = np.power(self.D_k, 2)
-        
-        
-        coords = [self.dataset._projections[id] for id in self.dataset.ids]
-        
-        coords = np.array(coords)
-        print(coords)
-        print(coords.shape)
-        
-        
-        if isinstance(self.oldCoords, np.ndarray): 
-            P = coords
-            Q = self.oldCoords
-            A = P.transpose().dot(Q)
-            u, s, vt = np.linalg.svd(A, full_matrices=True)
-            v = vt.transpose()
-            ut = u.transpose()
-            r = np.sign(np.linalg.det(v.dot(ut)))
-            R = v.dot(np.array([[1, 0], [0, r]])).dot(ut)
-            coords = R.dot(P.transpose()).transpose()
-        
-        coordsDict = {}
-        ids = self.dataset.ids
-        for i in range(len(ids)):
-            id = ids[i]
-            coord = coords[i]
-            coordsDict[id] = coord.tolist()
-        
-        self.oldCoords = coords
-        
-        return coordsDict
+        summary['mean'] = {}
+        for i in range(len(emotions)):
+            summary['mean'][emotions[i]] = values[i].mean(axis=0).tolist()
+
+        return summary
+
+    def resetDataset(self, datasetId):
+        self.datasets[datasetId].resetProcesedMtseries()

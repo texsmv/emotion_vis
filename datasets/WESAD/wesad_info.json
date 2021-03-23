@@ -1,6 +1,5 @@
 {
-  "id": "wesad_0",
-  "name": "wesad",
+  "id": "wesad",
   "vocabulary": {
     "emotions": {
       "Valence": { "min": 0, "max": 9 },

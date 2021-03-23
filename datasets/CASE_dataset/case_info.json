@@ -1,46 +1,10 @@
 {
-  "id": "wesad_0",
-  "name": "wesad",
+  "id": "case",
   "vocabulary": {
     "emotions": {
-      "Valence": { "min": 0, "max": 9 },
-      "Arousal": { "min": 0, "max": 9 },
-      "PANAS-Active": { "min": 0, "max": 6 },
-      "PANAS-Distressed": { "min": 0, "max": 6 },
-      "PANAS-Interested": { "min": 0, "max": 6 },
-      "PANAS-Inspired": { "min": 0, "max": 6 },
-      "PANAS-Annoyed": { "min": 0, "max": 6 },
-      "PANAS-Strong": { "min": 0, "max": 6 },
-      "PANAS-Guilty": { "min": 0, "max": 6 },
-      "PANAS-Scared": { "min": 0, "max": 6 },
-      "PANAS-Hostile": { "min": 0, "max": 6 },
-      "PANAS-Excited": { "min": 0, "max": 6 },
-      "PANAS-Proud": { "min": 0, "max": 6 },
-      "PANAS-Irritable": { "min": 0, "max": 6 },
-      "PANAS-Enthusiastic": { "min": 0, "max": 6 },
-      "PANAS-Ashamed": { "min": 0, "max": 6 },
-      "PANAS-Alert": { "min": 0, "max": 6 },
-      "PANAS-Nervous": { "min": 0, "max": 6 },
-      "PANAS-Determined": { "min": 0, "max": 6 },
-      "PANAS-Attentive": { "min": 0, "max": 6 },
-      "PANAS-Jittery": { "min": 0, "max": 6 },
-      "PANAS-Afraid": { "min": 0, "max": 6 },
-      "PANAS-Stressed": { "min": 0, "max": 6 },
-      "PANAS-Frustrated": { "min": 0, "max": 6 },
-      "PANAS-Happy": { "min": 0, "max": 6 },
-      "PANAS-Sad": { "min": 0, "max": 6 },
-      "STAI-I feel at ease": { "min": 0, "max": 6 },
-      "STAI-I feel nervous": { "min": 0, "max": 6 },
-      "STAI-I am jittery": { "min": 0, "max": 6 },
-      "STAI-I am relaxed": { "min": 0, "max": 6 },
-      "STAI-I am worried": { "min": 0, "max": 6 },
-      "STAI-I feel pleasant": { "min": 0, "max": 6 }
+      "Valence": { "min": 0, "max": 10 },
+      "Arousal": { "min": 0, "max": 10 }
     },
-    "categorical metadata": {
-      "Dominant hand": ["left", "right"],
-      "Gender": ["female", "male"]
-    },
-    "numericalMetadata": ["Age", "Height (cm)", "Weight (kg)"],
     "identifiers": ["id"]
   }
 }

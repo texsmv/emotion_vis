@@ -44,7 +44,6 @@ class MTSerieDataset:
     def ids(self) -> list:
         return list(self.mtseries.keys())
     
-    
     def get_first(self, procesed = True) -> MTSerie:
         if procesed:
             return self.procesedMTSeries[next(iter(self.procesedMTSeries))]
@@ -237,47 +236,15 @@ class MTSerieDataset:
             clusters[clusterLabel] = clusterIds
         return clusters
 
-        
-    # def cluster_projections(self, n_clusters):
-    #     coords = np.array(list(self._projections.values()))
-        
-    #     # ! spectral clustering not working
-    #     # clustering = SpectralClustering(n_clusters=40,
-    #     #                         assign_labels="discretize",
-    #     #                         n_neighbors=2,
-    #     #                         random_state=0).fit(coords)
-    #     # return clustering.labels_
-
-    #     # * dbscan
-    #     # print(coords.shape)
-    #     # clustering = DBSCAN(eps=0.1, min_samples=2).fit(coords)
-    #     # fit model and predict clusters
-    #     # clusters = clustering.labels_
-        
-    #     k_means = KMeans(random_state=0, n_clusters=n_clusters)
-    #     k_means.fit(coords)
-    #     labels = k_means.predict(coords)
-        
-    #     self._clusters = {}
-    #     clusterLabels = np.unique(labels)
-    #     for clusterLabel in clusterLabels:
-    #         clusterIds = []
-    #         for i in range(self.instanceLen):
-    #             if labels[i] == clusterLabel:
-    #                 clusterIds = clusterIds + [self.ids[i]]
-    #                 self._clusterById[self.ids[i]] = clusterLabel
-    #         self._clusters[clusterLabel] = clusterIds
-
-    
-    
-    def query_all_by_range(self, begin, end):
-        #  todo check this
-        # assert self._isDataUniformInTime
-        result = {}
-        for id, mtserie in self.procesedMTSeries.items():
-            assert isinstance(mtserie, MTSerie)
-            result[id] = mtserie.range_query(begin, end)
-        return result
+    #! deprecated
+    # def query_all_by_range(self, begin, end):
+    #     #  todo check this
+    #     # assert self._isDataUniformInTime
+    #     result = {}
+    #     for id, mtserie in self.procesedMTSeries.items():
+    #         assert isinstance(mtserie, MTSerie)
+    #         result[id] = mtserie.range_query(begin, end)
+    #     return result
 
     def get_mtseries_in_range(self, begin, end, ids = [], procesed = True)->list:
         _ids = ids
@@ -289,36 +256,7 @@ class MTSerieDataset:
             result[id] = mtserie.range_query(mtserie.index[begin], mtserie.index[end])
         return result
     
-    # ! deprecated
-    def getAllMetadata(self):
-        result = {}
-        for id, mtserie in self._timeSeries.items():
-            assert isinstance(mtserie, MTSerie)
-            result[id] = {'metadata': mtserie.metadata, 'numFeatures' : mtserie.numericalFeatures.tolist(), 'numLabels' : mtserie.numericalLabels, 'catFeatures' : mtserie.categoricalFeatures.tolist(), 'catLabels' : mtserie.categoricalLabels}
-        return result
     
-    # ! deprecated
-    def computeVariablesLimits(self):
-        self._variablesLimits = {}
-        for varName in self._variablesNames:
-            currMin = None
-            currMax = None
-            for mtserie in self._timeSeries.values():
-                assert isinstance(mtserie, MTSerie)
-                minValue = mtserie.getSerie(varName).min()
-                maxValue = mtserie.getSerie(varName).max()
-                
-                if(currMin == None):
-                    currMin = minValue
-                elif currMin > minValue:
-                    currMin = minValue
-                    
-                if(currMax == None):
-                    currMax = maxValue
-                elif currMax < maxValue:
-                    currMax = maxValue
-            self._variablesLimits[varName] = [currMin, currMax]
-            
     def get_datetime_common_range(self, procesed = True):
         begin_dates = []
         last_dates = []
@@ -328,15 +266,6 @@ class MTSerieDataset:
             begin_dates = begin_dates + [mtserie.datetimes[0]]
             last_dates = last_dates + [mtserie.datetimes[-1]]
         return (max(begin_dates), min(last_dates))
-    # ! deprecated
-    def getVariablesLimits(self):
-        return self._variablesLimits
-    # ! deprecated
-    def getVariableLimits(self, varName):
-        return self._variablesLimits[varName]
-    # ! deprecated
-    def setVariableLimits(self, varName, minValue, maxValue):
-        self._variablesLimits[varName] = [minValue, maxValue]
     
     def removeVariable(self, varName):
         for mtserie in self.get_mtseries(procesed=False):
@@ -355,3 +284,7 @@ class MTSerieDataset:
             mtseries_values = mtseries_values + [serie.values]
         
         return np.array(mtseries_values)
+
+    def resetProcesedMtseries(self):
+        for id in self.ids:
+            self.procesedMTSeries[id] = self.mtseries[id]
