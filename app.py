@@ -63,24 +63,19 @@ def addEmlToDataset():
         "state": "success" if succed else "error"
     })
 
-
-@app.route("/getMTSeries", methods=['POST'])
-def getMTSeries():
-    datasetId = request.form.get('datasetId')
-    procesed = True if request.form.get('procesed') == "True" else False
-    begin = int(request.form.get('begin'))
-    end = int(request.form.get('end'))
-    ids = json.loads(request.form.get('ids'))
-    print("procesed: {}".format(procesed))
-    return jsonify(appController.getMTSeriesInRange(datasetId, ids, begin, end))
-
-
 @app.route("/getDatasetInfo", methods=['POST'])
 def getDatasetInfo():
     datasetId = request.form.get('datasetId')
     dataInfo = appController.getDatasetInfo(datasetId)
     return jsonify(dataInfo)
 
+@app.route("/getMTSeries", methods=['POST'])
+def getMTSeries():
+    datasetId = request.form.get('datasetId')
+    begin = int(request.form.get('begin'))
+    end = int(request.form.get('end'))
+    ids = json.loads(request.form.get('ids'))
+    return jsonify(appController.getMTSeriesInRange(datasetId, ids, begin, end))
 
 @app.route("/downsampleData", methods=['POST'])
 def downsampleData():

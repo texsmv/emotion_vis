@@ -23,8 +23,9 @@ INFO_DATES = "dates"
 INFO_IS_DATED = "isDated"
 INFO_DOWNSAMPLE_RULES = "downsampleRules"
 INFO_IDS = "ids"
+INFO_CATEGORICAL_LABELS = "categoricalLabels"
+INFO_NUMERICAL_LABELS = "numericalLabels"
 
-SETTINGS_ALPHAS = "alphas"
 SETTINGS_EMOTIONS_LABELS = "emotionLabels"
 SETTINGS_LOWER_BOUNDS = "globalEmotionLowerBound"
 SETTINGS_UPPER_BOUNDS = "globalEmotionUpperBound"
@@ -147,6 +148,13 @@ class AppController:
             procesed=True)
         dataInfo[INFO_SERIES_LABELS] = self.getDatasetEmotions(datasetId)
         dataInfo[INFO_IS_DATED] = self.datasets[datasetId].isDataDated
+        if 'categoricalMetadata' in self.datasetsInfo[datasetId]["vocabulary"]:
+            print("si hay")
+            dataInfo[INFO_CATEGORICAL_LABELS] = self.datasetsInfo[datasetId]["vocabulary"]['categoricalMetadata']
+        if 'numericalMetadata' in self.datasetsInfo[datasetId]["vocabulary"]:
+            print("si hay")
+            dataInfo[INFO_NUMERICAL_LABELS] = self.datasetsInfo[datasetId]["vocabulary"]['numericalMetadata']
+
         if self.datasets[datasetId].isDataDated:
             dataInfo[INFO_DATES] = [
                 str(date) for date in self.datasets[datasetId].get_datetimes(procesed=True)]

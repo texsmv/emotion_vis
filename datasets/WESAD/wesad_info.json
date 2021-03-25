@@ -35,7 +35,7 @@
       "STAI-I am worried": { "min": 0, "max": 6 },
       "STAI-I feel pleasant": { "min": 0, "max": 6 }
     },
-    "categorical metadata": {
+    "categoricalMetadata": {
       "Dominant hand": ["left", "right"],
       "Gender": ["female", "male"]
     },
