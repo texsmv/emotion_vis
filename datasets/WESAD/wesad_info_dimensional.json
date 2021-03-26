@@ -1,0 +1,16 @@
+{
+  "id": "wesad_dimensional",
+  "vocabulary": {
+    "emotions": {
+      "Valence": { "min": 0, "max": 9, "dimension": "valence"},
+      "Arousal": { "min": 0, "max": 9, "dimension": "arousal"}
+    },
+    "categoricalMetadata": {
+      "Dominant hand": ["left", "right"],
+      "Gender": ["female", "male"]
+    },
+    "numericalMetadata": ["Age", "Height (cm)", "Weight (kg)"],
+    "identifiers": ["id"]
+  },
+  "type": "dimensional"
+}

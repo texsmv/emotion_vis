@@ -1,6 +1,6 @@
 from local_datasets_info import *
 from mts.core.projections import euclidean_distance_matrix, mds_projection, mp_distance_matrix, compute_k_distance_matrixes, compute_distance_matrix
-from mts.core.utils import mtserieQueryToJsonStr, subsetSeparationRanking, fishersDiscriminantRanking
+from mts.core.utils import mtserieQueryToJsonStr, subsetSeparationRanking, fishersDiscriminantRanking, scale_layout
 from mts.core.distances import DistanceType, ts_euclidean_distance
 from utils.utils import mtserie_from_json
 from mts.core.mtserie_dataset import MTSerieDataset
@@ -25,7 +25,8 @@ INFO_DOWNSAMPLE_RULES = "downsampleRules"
 INFO_IDS = "ids"
 INFO_CATEGORICAL_LABELS = "categoricalLabels"
 INFO_NUMERICAL_LABELS = "numericalLabels"
-
+INFO_TYPE = "type"  # * either 'dimensional' or 'categorical'
+INFO_DIMENSIONS = "dimensions"  # * only if type is dimensional
 SETTINGS_EMOTIONS_LABELS = "emotionLabels"
 SETTINGS_LOWER_BOUNDS = "globalEmotionLowerBound"
 SETTINGS_UPPER_BOUNDS = "globalEmotionUpperBound"
@@ -36,7 +37,8 @@ DATASET_PATH = "datasets/"
 class AppController:
     def __init__(self):
         self.loadedDatasets = []
-        self.localDatasetsIds = ["case", "wesad"]
+        self.localDatasetsIds = [
+            "case", "wesad_dimensional",  "wesad_categorical"]
         self.datasets = {}
         # this info is changed according to the proccesing make on the original data
         self.datasetsInfo = {}
@@ -45,8 +47,11 @@ class AppController:
         if datasetId in self.loadedDatasets:
             return False
 
-        if datasetId == "wesad":
-            path_info = wesad_path_info
+        if datasetId == "wesad_dimensional":
+            path_info = wesad_path_info_dimensional
+            paths = wesad_paths
+        if datasetId == "wesad_categorical":
+            path_info = wesad_path_info_categorical
             paths = wesad_paths
         elif datasetId == "case":
             path_info = case_path_info
@@ -129,6 +134,10 @@ class AppController:
         # field can be either 'min' or 'max'
         emotionsInfo = self.datasetsInfo[datasetId]["vocabulary"]["emotions"]
         return {emotion: emotionsInfo[emotion][field] for emotion in emotionsInfo.keys()}
+    
+    def getDatasetEmotionDimensions(self, datasetId):
+        emotionsInfo = self.datasetsInfo[datasetId]["vocabulary"]["emotions"]
+        return {emotion: emotionsInfo[emotion][field] for emotion in emotionsInfo.keys()}
 
     def getDatasetEmotions(self, datasetId):
         return list(self.datasetsInfo[datasetId]["vocabulary"]["emotions"].keys())
@@ -148,6 +157,11 @@ class AppController:
             procesed=True)
         dataInfo[INFO_SERIES_LABELS] = self.getDatasetEmotions(datasetId)
         dataInfo[INFO_IS_DATED] = self.datasets[datasetId].isDataDated
+        dataInfo[INFO_TYPE] = self.datasetsInfo[datasetId]["type"]
+        if self.datasetsInfo[datasetId]["type"] == "dimensional":
+            dataInfo[INFO_DIMENSIONS] = self.getDatasetEmotionValues(
+                datasetId,
+                "dimension")
         if 'categoricalMetadata' in self.datasetsInfo[datasetId]["vocabulary"]:
             print("si hay")
             dataInfo[INFO_CATEGORICAL_LABELS] = self.datasetsInfo[datasetId]["vocabulary"]['categoricalMetadata']
@@ -185,6 +199,7 @@ class AppController:
 
         coords = np.array([self.datasets[datasetId]._projections[id]
                           for id in self.datasets[datasetId].ids])
+        coords = scale_layout(coords)
 
         if isinstance(oldCoords, np.ndarray):
             P = coords

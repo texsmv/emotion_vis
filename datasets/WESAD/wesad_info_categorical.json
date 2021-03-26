@@ -1,5 +1,5 @@
 {
-  "id": "wesad",
+  "id": "wesad_categorical",
   "vocabulary": {
     "emotions": {
       "Valence": { "min": 0, "max": 9 },
@@ -41,5 +41,6 @@
     },
     "numericalMetadata": ["Age", "Height (cm)", "Weight (kg)"],
     "identifiers": ["id"]
-  }
+  },
+  "type": "categorical"
 }
