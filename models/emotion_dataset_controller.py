@@ -146,6 +146,7 @@ class AppController:
 
     def getDatasetInfo(self, datasetId):
         dataInfo = {}
+        print(self.datasets)
         dataInfo[INFO_IDS] = self.datasets[datasetId].ids
         dataInfo[INFO_MIN_VALUES] = self.getDatasetEmotionValues(
             datasetId, 'min')
