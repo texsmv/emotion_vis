@@ -1,4 +1,5 @@
-wesad_path_info = "WESAD/wesad_info.json"
+wesad_path_info_dimensional = "WESAD/wesad_info_dimensional.json"
+wesad_path_info_categorical = "WESAD/wesad_info_categorical.json"
 wesad_paths = [
     "WESAD/s10.json",
     "WESAD/s11.json",
@@ -17,6 +18,8 @@ wesad_paths = [
     "WESAD/s9.json"
 ]
 
+case_path_info_dimensional = "CASE_dataset/case_info_dimensional.json"
+case_path_info_categorical = "CASE_dataset/case_info_categorical.json"
 case_paths = [
     "CASE_dataset/sub_10.json",
     "CASE_dataset/sub_11.json",

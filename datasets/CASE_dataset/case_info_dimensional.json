@@ -1,0 +1,12 @@
+{
+  "id": "case_dimensional",
+  "vocabulary": {
+    "emotions": {
+      "Valence": { "min": 0.0, "max": 10.0, "dimension": "valence" },
+      "Arousal": { "min": 0.0, "max": 10.0, "dimension": "arousal" },
+      "Video": { "min": 0.0, "max": 12.0, "dimension": "dominance" }
+    },
+    "identifiers": ["id"]
+  },
+  "type": "dimensional"
+}

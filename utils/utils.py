@@ -23,7 +23,7 @@ def mtserie_from_json(jsonString)->MTSerie:
     variablesNames = list(data["emotions"].keys())
     variablesDataDict = {}
     for variable in variablesNames:
-        variablesDataDict[variable] = np.array(data[variable])
+        variablesDataDict[variable] = np.array(data["emotions"][variable])
     mtserie = MTSerie.fromDict(X=variablesDataDict, index=dateTimes, 
                                info= identifiers, numericalFeatures=numericalDict,
                                categoricalFeatures=categoricalDict)

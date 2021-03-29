@@ -3,6 +3,20 @@ import matplotlib.pyplot as plt
 import json
 from dateutil import parser
 
+def scale_layout(points, bound=[-1, 1]):
+    p_min = np.min(points, axis=0)
+    p_max = np.max(points, axis=0)
+
+    w = p_max[0] - p_min[0]
+    h = p_max[1] - p_min[1]
+    d = max([w, h])
+
+    s = 1.0
+    if d > 0:
+        s = (bound[1] - bound[0]) / d
+    offset = [(d - w) * .5, (d - h) * .5]
+
+    return bound[0] + (offset + points - p_min) * s
 
 def plot_discords(pattern , discords, L, ax):
     

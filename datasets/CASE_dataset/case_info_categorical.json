@@ -1,0 +1,11 @@
+{
+  "id": "case_categorical",
+  "vocabulary": {
+    "emotions": {
+      "Valence": { "min": 0.0, "max": 10.0 },
+      "Arousal": { "min": 0.0, "max": 10.0 }
+    },
+    "identifiers": ["id"]
+  },
+  "type": "categorical"
+}
