@@ -90,11 +90,11 @@ class AppController:
         infoDict = json.loads(jsonStr)
         datasetId = infoDict["id"]
         if datasetId in self.loadedDatasets:
-            return False
+            return "error"
         self.datasets[datasetId] = MTSerieDataset()
         self.datasetsInfo[datasetId] = infoDict
         self.loadedDatasets.append(datasetId)
-        return True
+        return datasetId
 
     def addEmlToDataset(self, datasetId, eml):
         if not datasetId in self.loadedDatasets:

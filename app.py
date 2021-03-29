@@ -46,10 +46,10 @@ def removeDataset():
 
 @app.route("/initializeDataset", methods=['POST'])
 def initializeDataset():
-    datasetId = request.form.get('datasetId')
-    succed = appController.initializeDataset(datasetId)
+    datasetInfoJson = request.form.get('datasetInfo')
+    datasetId = appController.initializeDataset(datasetInfoJson)
     return jsonify({
-        "state": "success" if succed else "error"
+        "id":datasetId
     })
 
 
