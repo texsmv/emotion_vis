@@ -12,7 +12,6 @@ app = Flask(__name__)
 CORS(app)
 
 appController = AppController()
-appController.loadLocalDataset("case_dimensional")
 
 @app.route('/')
 def index():
