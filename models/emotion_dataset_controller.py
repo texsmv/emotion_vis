@@ -99,10 +99,7 @@ class AppController:
     def addEmlToDataset(self, datasetId, eml):
         if not datasetId in self.loadedDatasets:
             return False
-        mtserie = mtserie_from_json(eml)
-        assert isinstance(mtserie, MTSerie)
-        id = mtserie.info["id"]
-        self.datasets[datasetId].add(mtserie, id)
+        id = self.addMtserieFromString(datasetId, eml)
         return True
 
     def getMTSeriesInRange(self, datasetId, ids, begin, end):
