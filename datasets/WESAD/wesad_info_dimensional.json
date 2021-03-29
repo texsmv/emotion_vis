@@ -2,8 +2,8 @@
   "id": "wesad_dimensional",
   "vocabulary": {
     "emotions": {
-      "Valence": { "min": 0, "max": 9, "dimension": "valence"},
-      "Arousal": { "min": 0, "max": 9, "dimension": "arousal"}
+      "Valence": { "min": 0.0, "max": 9.0, "dimension": "valence" },
+      "Arousal": { "min": 0.0, "max": 9.0, "dimension": "arousal" }
     },
     "categoricalMetadata": {
       "Dominant hand": ["left", "right"],

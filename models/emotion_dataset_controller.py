@@ -38,7 +38,7 @@ class AppController:
     def __init__(self):
         self.loadedDatasets = []
         self.localDatasetsIds = [
-            "case", "wesad_dimensional",  "wesad_categorical"]
+            "case_categorical","case_dimensional", "wesad_dimensional",  "wesad_categorical"]
         self.datasets = {}
         # this info is changed according to the proccesing make on the original data
         self.datasetsInfo = {}
@@ -50,11 +50,14 @@ class AppController:
         if datasetId == "wesad_dimensional":
             path_info = wesad_path_info_dimensional
             paths = wesad_paths
-        if datasetId == "wesad_categorical":
+        elif datasetId == "wesad_categorical":
             path_info = wesad_path_info_categorical
             paths = wesad_paths
-        elif datasetId == "case":
-            path_info = case_path_info
+        elif datasetId == "case_dimensional":
+            path_info = case_path_info_dimensional
+            paths = case_paths
+        elif datasetId == "case_categorical":
+            path_info = case_path_info_categorical
             paths = case_paths
 
         with open('datasets/' + path_info, 'r') as file:
@@ -245,15 +248,15 @@ class AppController:
         emotions = self.getDatasetEmotions(datasetId)
         summary['min'] = {}
         for i in range(len(emotions)):
-            summary['min'][emotions[i]] = values[i].min(axis=0).tolist()
+            summary['min'][emotions[i]] = values[i].min(axis=1).tolist()
 
         summary['max'] = {}
         for i in range(len(emotions)):
-            summary['max'][emotions[i]] = values[i].max(axis=0).tolist()
+            summary['max'][emotions[i]] = values[i].max(axis=1).tolist()
 
         summary['mean'] = {}
         for i in range(len(emotions)):
-            summary['mean'][emotions[i]] = values[i].mean(axis=0).tolist()
+            summary['mean'][emotions[i]] = values[i].mean(axis=1).tolist()
 
         return summary
 
