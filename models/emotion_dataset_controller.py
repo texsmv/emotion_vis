@@ -164,10 +164,8 @@ class AppController:
                 datasetId,
                 "dimension")
         if 'categoricalMetadata' in self.datasetsInfo[datasetId]["vocabulary"]:
-            print("si hay")
             dataInfo[INFO_CATEGORICAL_LABELS] = self.datasetsInfo[datasetId]["vocabulary"]['categoricalMetadata']
         if 'numericalMetadata' in self.datasetsInfo[datasetId]["vocabulary"]:
-            print("si hay")
             dataInfo[INFO_NUMERICAL_LABELS] = self.datasetsInfo[datasetId]["vocabulary"]['numericalMetadata']
 
         if self.datasets[datasetId].isDataDated:
