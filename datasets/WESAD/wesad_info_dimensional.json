@@ -12,5 +12,6 @@
     "numericalMetadata": ["Age", "Height (cm)", "Weight (kg)"],
     "identifiers": ["id"]
   },
-  "type": "dimensional"
+  "type": "dimensional",
+  "labels": ["Base", "TSST", "Medi 1", "Fun", "Medi2"]
 }

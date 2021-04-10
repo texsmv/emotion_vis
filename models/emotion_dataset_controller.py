@@ -6,6 +6,8 @@ from utils.utils import mtserie_from_json
 from mts.core.mtserie_dataset import MTSerieDataset
 from numpy.lib.index_tricks import CClass
 from mts.core.mtserie import MTSerie
+from dateutil import parser
+import datetime
 import numpy as np
 import sys
 import json
@@ -20,6 +22,7 @@ INFO_LEN_TIME = "temporalLen"
 INFO_LEN_INSTANCE = "instanceLen"
 INFO_LEN_VARIABLES = "variablesLen"
 INFO_DATES = "dates"
+INFO_LABELS = "labels"
 INFO_IS_DATED = "isDated"
 INFO_DOWNSAMPLE_RULES = "downsampleRules"
 INFO_IDS = "ids"
@@ -73,7 +76,13 @@ class AppController:
         return True
 
     def addMtserieFromString(self, datasetId, eml):
-        mtserie = mtserie_from_json(eml)
+        datasetInfo = self.datasetsInfo[datasetId]
+        mtserie = None
+        if "dates" in datasetInfo:
+            dateTimes = datasetInfo["dates"]
+            mtserie = mtserie_from_json(eml, dateTimes=dateTimes)
+        else:
+            mtserie = mtserie_from_json(eml)
         id = mtserie.info["id"]
         self.datasets[datasetId].add(mtserie, id)
         return id
@@ -94,6 +103,10 @@ class AppController:
         self.datasets[datasetId] = MTSerieDataset()
         self.datasetsInfo[datasetId] = infoDict
         self.loadedDatasets.append(datasetId)
+        if "dates" in infoDict:
+            dateTimes = [ np.datetime64(parser.parse(e)) for e in infoDict["dates"]]
+            dateTimes = np.array(dateTimes)
+            infoDict["dates"] = dateTimes
         return datasetId
 
     def addEmlToDataset(self, datasetId, eml):
@@ -167,6 +180,9 @@ class AppController:
             dataInfo[INFO_CATEGORICAL_LABELS] = self.datasetsInfo[datasetId]["vocabulary"]['categoricalMetadata']
         if 'numericalMetadata' in self.datasetsInfo[datasetId]["vocabulary"]:
             dataInfo[INFO_NUMERICAL_LABELS] = self.datasetsInfo[datasetId]["vocabulary"]['numericalMetadata']
+
+        if "labels" in self.datasetsInfo[datasetId]:
+            dataInfo[INFO_LABELS] = self.datasetsInfo[datasetId]["labels"]
 
         if self.datasets[datasetId].isDataDated:
             dataInfo[INFO_DATES] = [

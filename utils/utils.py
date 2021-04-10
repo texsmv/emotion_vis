@@ -10,15 +10,16 @@ import json
 sys.path.append("..")
 from mts.core.mtserie import MTSerie
 
-def mtserie_from_json(jsonString)->MTSerie:
+def mtserie_from_json(jsonString, dateTimes = [])->MTSerie:
     data = json.loads(jsonString)
     identifiers = data["info"]["identifiers"]
     
     categoricalDict = data["info"].get("categoricalMetadata", {})
     numericalDict = data["info"].get("numericalMetadata", {})
-    dateTimesStr = data.get("dates", [])
-    dateTimes = [ np.datetime64(parser.parse(e)) for e in dateTimesStr]
-    dateTimes = np.array(dateTimes)
+
+    # dateTimesStr = data.get("dates", [])
+    # dateTimes = [ np.datetime64(parser.parse(e)) for e in dateTimesStr]
+    # dateTimes = np.array(dateTimes)
 
     variablesNames = list(data["emotions"].keys())
     variablesDataDict = {}
