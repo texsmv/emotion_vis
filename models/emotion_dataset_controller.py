@@ -41,7 +41,7 @@ class AppController:
     def __init__(self):
         self.loadedDatasets = []
         self.localDatasetsIds = [
-            "case_categorical","case_dimensional", "wesad_dimensional",  "wesad_categorical"]
+            "wesad_dimensional_2","wesad_dimensional_3", "wesad_categorical_panas", "wesad_categorical_stai", "case_dimensional", "case_categorical"]
         self.datasets = {}
         # this info is changed according to the proccesing make on the original data
         self.datasetsInfo = {}
@@ -50,11 +50,17 @@ class AppController:
         if datasetId in self.loadedDatasets:
             return False
 
-        if datasetId == "wesad_dimensional":
-            path_info = wesad_path_info_dimensional
+        if datasetId == "wesad_dimensional_2":
+            path_info = wesad_path_info_dimensional_2
             paths = wesad_paths
-        elif datasetId == "wesad_categorical":
-            path_info = wesad_path_info_categorical
+        elif datasetId == "wesad_dimensional_3":
+            path_info = wesad_path_info_dimensional_3
+            paths = wesad_paths
+        elif datasetId == "wesad_categorical_panas":
+            path_info = wesad_path_info_categorical_panas
+            paths = wesad_paths
+        elif datasetId == "wesad_categorical_stai":
+            path_info = wesad_path_info_categorical_stai
             paths = wesad_paths
         elif datasetId == "case_dimensional":
             path_info = case_path_info_dimensional
@@ -214,7 +220,6 @@ class AppController:
 
         coords = np.array([self.datasets[datasetId]._projections[id]
                           for id in self.datasets[datasetId].ids])
-        coords = scale_layout(coords)
 
         if isinstance(oldCoords, np.ndarray):
             P = coords
@@ -227,6 +232,7 @@ class AppController:
             R = v.dot(np.array([[1, 0], [0, r]])).dot(ut)
             coords = R.dot(P.transpose()).transpose()
 
+        coords = scale_layout(coords)
         # return coords as dict
         coordsDict = {}
         ids = self.datasets[datasetId].ids

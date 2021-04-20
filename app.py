@@ -117,6 +117,7 @@ def getDatasetProjection():
     coords, D_k = appController.getMdsProjection(
         datasetId, begin, end, alphas, oldCoords=oldCoords, D_k=D_k)
     D_k = {key: D_k[key].tolist() for key in D_k.keys()}
+    print(coords)
     return jsonify({'coords': coords, 'D_k': D_k})
 
 

@@ -1,0 +1,21 @@
+{
+  "id": "wesad_categorical_stai",
+  "vocabulary": {
+    "emotions": {
+      "STAI-I feel at ease": { "min": 0.0, "max": 4.0 },
+      "STAI-I feel nervous": { "min": 0.0, "max": 4.0 },
+      "STAI-I am jittery": { "min": 0.0, "max": 4.0 },
+      "STAI-I am relaxed": { "min": 0.0, "max": 4.0 },
+      "STAI-I am worried": { "min": 0.0, "max": 4.0 },
+      "STAI-I feel pleasant": { "min": 0.0, "max": 4.0 }
+    },
+    "categoricalMetadata": {
+      "Dominant hand": ["left", "right"],
+      "Gender": ["female", "male"]
+    },
+    "numericalMetadata": ["Age", "Height (cm)", "Weight (kg)"],
+    "identifiers": ["id"]
+  },
+  "type": "categorical",
+  "labels": ["Base", "TSST", "Medi 1", "Fun", "Medi2"]
+}

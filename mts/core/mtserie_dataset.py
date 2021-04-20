@@ -253,7 +253,13 @@ class MTSerieDataset:
         result = {}
         for id in _ids:
             mtserie = self.get_mtserie(id, procesed=procesed)
-            result[id] = mtserie.range_query(mtserie.index[begin], mtserie.index[end])
+            length = len(mtserie.index)
+            #  case when the last index is chosen
+            begin_index = mtserie.index[begin]
+            end_index = None
+            if end != length:
+                end_index = mtserie.index[end]
+            result[id] = mtserie.range_query(begin_index, end_index)
         return result
     
     

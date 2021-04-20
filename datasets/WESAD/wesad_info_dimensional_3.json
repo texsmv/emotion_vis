@@ -1,0 +1,18 @@
+{
+  "id": "wesad_dimensional_3",
+  "vocabulary": {
+    "emotions": {
+      "Valence": { "min": 0.0, "max": 9.0, "dimension": "valence" },
+      "Arousal": { "min": 0.0, "max": 9.0, "dimension": "arousal" },
+      "PANAS-Active": { "min": 0.0, "max": 9.0, "dimension": "dominance" }
+    },
+    "categoricalMetadata": {
+      "Dominant hand": ["left", "right"],
+      "Gender": ["female", "male"]
+    },
+    "numericalMetadata": ["Age", "Height (cm)", "Weight (kg)"],
+    "identifiers": ["id"]
+  },
+  "type": "dimensional",
+  "labels": ["Base", "TSST", "Medi 1", "Fun", "Medi2"]
+}

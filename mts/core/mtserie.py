@@ -164,7 +164,11 @@ class MTSerie:
         super().__init__()
     
     def range_query(self, begin, end):
-        mask = (self.dataframe.index >= begin) & (self.dataframe.index < end)
+        mask = None
+        if end == None:
+            mask = (self.dataframe.index >= begin)
+        else:
+            mask = (self.dataframe.index >= begin) & (self.dataframe.index < end)
         queryMTSerie = MTSerie()
         queryMTSerie.dataframe = self.dataframe[mask]
         queryMTSerie.info = self.info

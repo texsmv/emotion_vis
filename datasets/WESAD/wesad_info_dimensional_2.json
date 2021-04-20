@@ -1,5 +1,5 @@
 {
-  "id": "wesad_dimensional",
+  "id": "wesad_dimensional_2",
   "vocabulary": {
     "emotions": {
       "Valence": { "min": 0.0, "max": 9.0, "dimension": "valence" },
