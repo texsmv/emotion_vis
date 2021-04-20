@@ -6,7 +6,7 @@ Tested with python-3.8.5
 - Clone the repository
 `$git clone https://github.com/texsmv`
 - Create an environment
-`$ python -m eviz eviz`
+`$ python3 -m eviz eviz`
 - Activate the environment
 `$source eviz/bin/activate `
 - Install the server requirements
