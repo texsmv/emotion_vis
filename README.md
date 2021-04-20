@@ -4,9 +4,11 @@ Tested with python-3.8.5
 
 ### Installation
 - Clone the repository
-`$git clone https://github.com/texsmv`
+`$git clone https://github.com/texsmv/emotion_vis_server`
+- Enter to the repository dir
+`$cd emotion_vis_server`
 - Create an environment
-`$ python3 -m eviz eviz`
+`$python3 -m venv eviz`
 - Activate the environment
 `$source eviz/bin/activate `
 - Install the server requirements
