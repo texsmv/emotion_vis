@@ -261,22 +261,32 @@ class AppController:
 
     def getTemporalSummary(self, datasetId):
         values = self.datasets[datasetId].values()
+        allVariables = self.datasets[datasetId].temporalVariables
+        print(allVariables)
+        print(values.shape)
         values = np.transpose(values, (2, 1, 0))  # to D, T, N shape
         summary = {}
         emotions = self.getDatasetEmotions(datasetId)
         summary['min'] = {}
+        emotion_pos = [allVariables.index(emotions[i])  for i in range(len(emotions))]
+        print(emotion_pos)
         for i in range(len(emotions)):
-            summary['min'][emotions[i]] = values[i].min(axis=1).tolist()
+            pos = emotion_pos[i]
+            summary['min'][emotions[i]] = values[pos].min(axis=1).tolist()
 
         summary['max'] = {}
         for i in range(len(emotions)):
-            summary['max'][emotions[i]] = values[i].max(axis=1).tolist()
+            pos = emotion_pos[i]
+            summary['max'][emotions[i]] = values[pos].max(axis=1).tolist()
 
         summary['mean'] = {}
         for i in range(len(emotions)):
-            summary['mean'][emotions[i]] = values[i].mean(axis=1).tolist()
+            pos = emotion_pos[i]
+            summary['mean'][emotions[i]] = values[pos].mean(axis=1).tolist()
 
         return summary
 
     def resetDataset(self, datasetId):
         self.datasets[datasetId].resetProcesedMtseries()
+    
+    
