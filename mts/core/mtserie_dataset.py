@@ -1,4 +1,6 @@
 import numpy as np
+import json
+import os
 from .mtserie import MTSerie
 from numpy import unique
 from .distances import DistanceType
@@ -294,3 +296,60 @@ class MTSerieDataset:
     def resetProcesedMtseries(self):
         for id in self.ids:
             self.procesedMTSeries[id] = self.mtseries[id]
+    
+    def exportToEmotionJson(
+        self, 
+        name: str,
+        isCategorical: bool,
+        minValue: float,
+        maxValue: float,
+        saveDir: str,
+        labels: list = None,
+        identifiers: list = None,
+        numericalMetadata: list = None,
+        categoricalMetadata: dict = None,
+    ):
+        settingsFile = open(os.path.join(saveDir, "{}.json".format(name)),"w")
+        settingsDict = {}
+        settingsDict['id'] = name
+        if isCategorical:
+            settingsDict['type'] = 'categorical'
+        else:
+            settingsDict['type'] = 'dimensional'
+        # settingsDict['labels'] = self.
+        settingsDict['vocabulary'] = {}
+        settingsDict['vocabulary']['emotions'] = {
+            variable: {'min': minValue, 'max': maxValue} for variable in self.temporalVariables
+        }
+        if labels != None:
+            settingsDict['labels'] = labels
+        if self.isDataDated:
+            # TODO: add datetimes
+            print(self.get_datetimes)
+        if numericalMetadata != None:
+            settingsDict['numericalMetadata'] = numericalMetadata
+
+        if categoricalMetadata != None:
+            settingsDict['categoricalMetadata'] = categoricalMetadata
+        
+        if identifiers != None:
+            settingsDict['identifiers'] = identifiers
+        
+        json.dump(settingsDict, settingsFile, indent=2)
+
+        for id in self.ids:
+            mtserie = self.mtseries[id]
+            assert isinstance(mtserie, MTSerie)
+            subjetFile = open(os.path.join(saveDir, "{}.json".format(id)),"w")
+            subjectDict = {}
+            subjectDict['info'] = {}
+            subjectDict['info']['identifiers'] = mtserie.identifiers
+            if len(mtserie.categoricalFeatures) != 0:
+                subjectDict['info']['categoricalMetadata'] = mtserie.categoricalFeatures
+            if len(mtserie.numericalFeatures) != 0:
+                subjectDict['info']['numericalMetadata'] = mtserie.numericalFeatures
+            subjectDict['emotions'] = {variable: mtserie.get_serie(variable).tolist() for variable in mtserie.labels}
+            json.dump(subjectDict, subjetFile, indent=2)
+            
+
+            

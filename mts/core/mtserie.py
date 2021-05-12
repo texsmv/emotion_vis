@@ -160,6 +160,7 @@ class MTSerie:
         self.mp = {}
         self.mp_window_size = None
         self._indexType = IndexType.INT
+        self.identifiers = {}
         
         super().__init__()
     
@@ -326,8 +327,7 @@ class MTSerie:
         mtserie.dataframe = D
         mtserie.info = info
         mtserie.categoricalFeatures = categoricalFeatures
-        mtserie.numericalFeatures = numericalFeatures
-        
+        mtserie.numericalFeatures = numericalFeatures        
         return mtserie
     
         

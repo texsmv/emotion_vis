@@ -201,7 +201,12 @@ def dtw_distance_matrix(mtseries, variables, alphas):
 #     return D, D_ks
 
 def mds_projection(D):
-    mds = manifold.MDS(n_components=2, dissimilarity="precomputed", random_state=6)
-    results = mds.fit(D)
-    return results.embedding_ 
+    # mds = manifold.MDS(n_components=2, dissimilarity="precomputed", random_state=6)
+    # results = mds.fit(D)
+    # return results.embedding_ 
+    # print("Doing tsne")
+    model = manifold.TSNE(n_components=2, random_state=0, metric='precomputed', perplexity=5)
+    coords = model.fit_transform(D)
+    return coords
+
 

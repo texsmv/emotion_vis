@@ -1,0 +1,13 @@
+{
+  "id": "drivers_stress",
+  "type": "dimensional",
+  "vocabulary": {
+    "emotions": {
+      "Stress": {
+        "min": 0.0,
+        "max": 1.0,
+        "dimension":"valence"
+      }
+    }
+  }
+}

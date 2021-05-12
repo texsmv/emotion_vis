@@ -1,0 +1,35 @@
+{
+  "id": "ascertain",
+  "type": "categorical",
+  "vocabulary": {
+    "emotions": {
+      "Arousal": {
+        "min": 0.0,
+        "max": 1.0
+      },
+      "Valence": {
+        "min": 0.0,
+        "max": 1.0
+      },
+      "Engagement": {
+        "min": 0.0,
+        "max": 1.0
+      },
+      "Liking": {
+        "min": 0.0,
+        "max": 1.0
+      },
+      "Familiarity": {
+        "min": 0.0,
+        "max": 1.0
+      }
+    }
+  },
+  "numericalMetadata": [
+    "Extroversion",
+    "Agreeableness",
+    "Conscientiousness",
+    "Emotional Stability",
+    "Openness"
+  ]
+}

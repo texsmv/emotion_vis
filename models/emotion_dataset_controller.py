@@ -41,7 +41,16 @@ class AppController:
     def __init__(self):
         self.loadedDatasets = []
         self.localDatasetsIds = [
-            "wesad_dimensional_2","wesad_dimensional_3", "wesad_categorical_panas", "wesad_categorical_stai", "case_dimensional", "case_categorical"]
+            "ascertain", 
+            "drivers_workload",
+            "drivers_stress",
+            "wesad_dimensional_2",
+            "wesad_dimensional_3",
+            "wesad_categorical_panas",
+            "wesad_categorical_stai",
+            "case_dimensional",
+            "case_categorical"
+        ]
         self.datasets = {}
         # this info is changed according to the proccesing make on the original data
         self.datasetsInfo = {}
@@ -68,6 +77,15 @@ class AppController:
         elif datasetId == "case_categorical":
             path_info = case_path_info_categorical
             paths = case_paths
+        elif datasetId == "ascertain":
+            path_info = ascertain_path_info
+            paths = ascertain_paths
+        elif datasetId == "drivers_workload":
+            path_info = workload_path_info
+            paths = workload_paths
+        elif datasetId == "drivers_stress":
+            path_info = stress_path_info
+            paths = stress_paths
 
         with open('datasets/' + path_info, 'r') as file:
             dataInfoJson = file.read()
@@ -196,7 +214,7 @@ class AppController:
             dataInfo[INFO_DOWNSAMPLE_RULES] = self.datasets[datasetId].allowedDownsampleRules
         return dataInfo
 
-    def compute_D_k(self, datasetId, begin, end, variables, distanceType=DistanceType.EUCLIDEAN):
+    def compute_D_k(self, datasetId, begin, end, variables, distanceType=DistanceType.DTW):
         D_k = compute_k_distance_matrixes(list(self.datasets[datasetId].get_mtseries_in_range(
             begin, end).values()), variables, distanceType)
         return D_k
@@ -213,9 +231,11 @@ class AppController:
         if _D_k == None:
             _D_k = self.compute_D_k(
                 datasetId, begin, end, self.getDatasetEmotions(datasetId), distanceType)
-
+        # * Distance matrix
         D = compute_distance_matrix(
             _D_k, alphas, self.datasets[datasetId].instanceLen)
+        
+        # * Projection
         self.datasets[datasetId].compute_projection(D)
 
         coords = np.array([self.datasets[datasetId]._projections[id]
