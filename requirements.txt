@@ -1,6 +1,8 @@
+autopep8==1.5.6
 click==7.1.2
 cycler==0.10.0
 Cython==0.29.22
+fastdtw==0.3.4
 Flask==1.1.2
 Flask-Cors==1.10.3
 gunicorn==20.0.4
@@ -18,6 +20,10 @@ numpy==1.20.1
 pandas==1.2.3
 Pillow==8.1.2
 protobuf==3.11.2
+pybind11==2.6.2
+pycodestyle==2.7.0
+pylcs==0.0.6
+pynndescent==0.5.2
 pyparsing==2.4.7
 python-dateutil==2.8.1
 pytz==2021.1
@@ -25,5 +31,7 @@ scikit-learn==0.24.1
 scipy==1.6.1
 six==1.15.0
 threadpoolctl==2.1.0
+toml==0.10.2
 tslearn==0.5.0.5
+umap-learn==0.5.1
 Werkzeug==1.0.1

@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from sklearn import cluster
 from mts.core.mtserie_dataset import MTSerieDataset
+from mts.core.projections import ProjectionAlg
 from models.emotion_dataset_controller import *
 
 import json
@@ -12,6 +13,7 @@ app = Flask(__name__)
 CORS(app)
 
 appController = AppController()
+
 
 @app.route('/')
 def index():
@@ -49,7 +51,7 @@ def initializeDataset():
     datasetInfoJson = request.form.get('datasetInfo')
     datasetId = appController.initializeDataset(datasetInfoJson)
     return jsonify({
-        "id":datasetId
+        "id": datasetId
     })
 
 
@@ -62,11 +64,13 @@ def addEmlToDataset():
         "state": "success" if succed else "error"
     })
 
+
 @app.route("/getDatasetInfo", methods=['POST'])
 def getDatasetInfo():
     datasetId = request.form.get('datasetId')
     dataInfo = appController.getDatasetInfo(datasetId)
     return jsonify(dataInfo)
+
 
 @app.route("/getMTSeries", methods=['POST'])
 def getMTSeries():
@@ -75,6 +79,7 @@ def getMTSeries():
     end = int(request.form.get('end'))
     ids = json.loads(request.form.get('ids'))
     return jsonify(appController.getMTSeriesInRange(datasetId, ids, begin, end))
+
 
 @app.route("/downsampleData", methods=['POST'])
 def downsampleData():
@@ -95,12 +100,21 @@ def resetDataset():
     })
 
 
+"""
+    distance: 0 for euclidean, 1 for DTW, 2 for MPDist
+"""
+
+
 @app.route("/getDatasetProjection", methods=['POST'])
 def getDatasetProjection():
     datasetId = request.form.get('datasetId')
     begin = request.form.get('begin', type=int)
     end = request.form.get('end', type=int)
     alphas = request.form.get('alphas', type=dict)
+    distance = request.form.get('distance', type=int)
+    projection = request.form.get('projection', type=int)
+    projectionParameter = request.form.get('projectionParameter', type=int)
+    distance = request.form.get('distance', type=int)
     D_k = json.loads(request.form.get('D_k'))
     oldCoords = json.loads(request.form.get('oldCoords'))
     if len(D_k) == 0:
@@ -112,10 +126,21 @@ def getDatasetProjection():
     else:
         oldCoords = np.array(list(oldCoords.values()))
     alphas = json.loads(request.form.get('alphas'))
-    # TODO
-    # distanceType = int(request.form.get('distanceType'))
-    coords, D_k = appController.getMdsProjection(
-        datasetId, begin, end, alphas, oldCoords=oldCoords, D_k=D_k)
+
+    distanceType = DistanceType(distance)
+    projectionAlg = ProjectionAlg(projection)
+    print("Using distance: {}".format(distanceType))
+    print("Using projection: {}".format(projectionAlg))
+    coords, D_k = appController.getProjection(
+        datasetId,
+        begin, end,
+        alphas,
+        oldCoords=oldCoords,
+        D_k=D_k,
+        distanceType=distanceType,
+        projectionAlg=projectionAlg,
+        projectionParam=projectionParameter
+    )
     D_k = {key: D_k[key].tolist() for key in D_k.keys()}
     print(coords)
     return jsonify({'coords': coords, 'D_k': D_k})

@@ -1,5 +1,5 @@
 from local_datasets_info import *
-from mts.core.projections import euclidean_distance_matrix, mds_projection, mp_distance_matrix, compute_k_distance_matrixes, compute_distance_matrix
+from mts.core.projections import ProjectionAlg, euclidean_distance_matrix, mds_projection, mp_distance_matrix, compute_k_distance_matrixes, compute_distance_matrix
 from mts.core.utils import mtserieQueryToJsonStr, subsetSeparationRanking, fishersDiscriminantRanking, scale_layout
 from mts.core.distances import DistanceType, ts_euclidean_distance
 from utils.utils import mtserie_from_json
@@ -41,7 +41,7 @@ class AppController:
     def __init__(self):
         self.loadedDatasets = []
         self.localDatasetsIds = [
-            "ascertain", 
+            "ascertain",
             "drivers_workload",
             "drivers_stress",
             "wesad_dimensional_2",
@@ -128,7 +128,8 @@ class AppController:
         self.datasetsInfo[datasetId] = infoDict
         self.loadedDatasets.append(datasetId)
         if "dates" in infoDict:
-            dateTimes = [ np.datetime64(parser.parse(e)) for e in infoDict["dates"]]
+            dateTimes = [np.datetime64(parser.parse(e))
+                         for e in infoDict["dates"]]
             dateTimes = np.array(dateTimes)
             infoDict["dates"] = dateTimes
         return datasetId
@@ -171,7 +172,7 @@ class AppController:
         # field can be either 'min' or 'max'
         emotionsInfo = self.datasetsInfo[datasetId]["vocabulary"]["emotions"]
         return {emotion: emotionsInfo[emotion][field] for emotion in emotionsInfo.keys()}
-    
+
     def getDatasetEmotionDimensions(self, datasetId):
         emotionsInfo = self.datasetsInfo[datasetId]["vocabulary"]["emotions"]
         return {emotion: emotionsInfo[emotion][field] for emotion in emotionsInfo.keys()}
@@ -214,29 +215,50 @@ class AppController:
             dataInfo[INFO_DOWNSAMPLE_RULES] = self.datasets[datasetId].allowedDownsampleRules
         return dataInfo
 
-    def compute_D_k(self, datasetId, begin, end, variables, distanceType=DistanceType.DTW):
-        D_k = compute_k_distance_matrixes(list(self.datasets[datasetId].get_mtseries_in_range(
-            begin, end).values()), variables, distanceType)
+    def compute_D_k(self, datasetId, begin, end, variables, distanceType=DistanceType.EUCLIDEAN):
+        D_k = compute_k_distance_matrixes(
+            list(self.datasets[datasetId].get_mtseries_in_range(
+                begin, end).values()),
+            variables,
+            distanceType
+        )
         return D_k
 
-    def getMdsProjection(self, datasetId, begin, end, alphas, oldCoords=None, D_k=None, distanceType=DistanceType.EUCLIDEAN):
-
-        # self.dataset.compute_distance_matrix(variables=variables,
-        #                                      alphas=alphas,
-        #                                      distanceType= DistanceType.EUCLIDEAN,
-        #
+    def getProjection(
+        self,
+        datasetId,
+        begin,
+        end,
+        alphas,
+        oldCoords=None,
+        D_k=None,
+        distanceType=DistanceType.EUCLIDEAN,
+        projectionAlg: ProjectionAlg = ProjectionAlg.MDS,
+        projectionParam: int = 5
+    ):
         _D_k = D_k
-
+    
         # compute D_K if not previously calculated
         if _D_k == None:
+            # * K Distance matrix
             _D_k = self.compute_D_k(
-                datasetId, begin, end, self.getDatasetEmotions(datasetId), distanceType)
+                datasetId,
+                begin,
+                end,
+                self.getDatasetEmotions(datasetId),
+                distanceType
+            )
+
         # * Distance matrix
         D = compute_distance_matrix(
             _D_k, alphas, self.datasets[datasetId].instanceLen)
-        
+
         # * Projection
-        self.datasets[datasetId].compute_projection(D)
+        self.datasets[datasetId].compute_projection(
+            D,
+            projectionAlg=projectionAlg,
+            projectionParam=projectionParam
+        )
 
         coords = np.array([self.datasets[datasetId]._projections[id]
                           for id in self.datasets[datasetId].ids])
@@ -288,7 +310,8 @@ class AppController:
         summary = {}
         emotions = self.getDatasetEmotions(datasetId)
         summary['min'] = {}
-        emotion_pos = [allVariables.index(emotions[i])  for i in range(len(emotions))]
+        emotion_pos = [allVariables.index(emotions[i])
+                       for i in range(len(emotions))]
         print(emotion_pos)
         for i in range(len(emotions)):
             pos = emotion_pos[i]
@@ -308,5 +331,3 @@ class AppController:
 
     def resetDataset(self, datasetId):
         self.datasets[datasetId].resetProcesedMtseries()
-    
-    

@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import json
 from dateutil import parser
 
+
+
 def scale_layout(points, bound=[-1, 1]):
     p_min = np.min(points, axis=0)
     p_max = np.max(points, axis=0)
