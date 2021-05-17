@@ -334,9 +334,12 @@ class MTSerieDataset:
         }
         if labels != None:
             settingsDict['labels'] = labels
+        print("self.isDataDated")
+        print(self.isDataDated)
         if self.isDataDated:
-            # TODO: add datetimes
-            print(self.get_datetimes)
+            datesStr = [np.datetime_as_string(date) for date in self.get_datetimes()]
+            datesStr = ["{}".format(date) for date in self.get_datetimes()]
+            settingsDict['dates'] = datesStr
         if numericalMetadata != None:
             settingsDict['numericalMetadata'] = numericalMetadata
 

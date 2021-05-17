@@ -6,6 +6,8 @@ import sys
 sys.path.insert(0,'..')
 from mts.core.mtserie_dataset import MTSerieDataset
 from mts.core.mtserie import MTSerie
+from datetime import datetime, timedelta
+from datetime import date
 
 
 def scaleToRange(OldValue, OldMin, OldMax, NewMin, NewMax):
@@ -61,7 +63,14 @@ for i in range(N):
     
     dataframe = pd.read_csv(FILE_PATH + files[i], sep = ";")
     ratings = dataframe.to_numpy().reshape([-1])[:minLen]
-    mtserie = MTSerie.fromDict({'Stress': ratings})
+    date_time_str = '10/02/21 01:55:19'
+    date_time_obj = datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+    times = np.array([date_time_obj + timedelta(seconds=i) for i in range(len(ratings))])
+    dataframe = pd.DataFrame({'Ratings': ratings}, index=times)
+    ratings = dataframe['Ratings'].to_numpy()
+    times = dataframe.index.to_numpy()
+    
+    mtserie = MTSerie.fromDict({'Stress': ratings}, index=times)
     mtserie.identifiers = {
         'id': id
     }
