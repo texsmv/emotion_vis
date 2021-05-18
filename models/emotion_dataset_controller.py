@@ -49,7 +49,8 @@ class AppController:
             "wesad_categorical_panas",
             "wesad_categorical_stai",
             "case_dimensional",
-            "case_categorical"
+            "case_categorical",
+            "emotions_in_music"
         ]
         self.datasets = {}
         # this info is changed according to the proccesing make on the original data
@@ -86,6 +87,9 @@ class AppController:
         elif datasetId == "drivers_stress":
             path_info = stress_path_info
             paths = stress_paths
+        elif datasetId == "emotions_in_music":
+            path_info = emotion_in_music_path_info
+            paths = emotion_in_music_paths
 
         with open('datasets/' + path_info, 'r') as file:
             dataInfoJson = file.read()
