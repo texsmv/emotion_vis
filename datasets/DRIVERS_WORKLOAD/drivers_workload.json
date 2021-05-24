@@ -1,12 +1,11 @@
 {
   "id": "drivers_workload",
-  "type": "dimensional",
+  "type": "categorical",
   "vocabulary": {
     "emotions": {
       "Workload": {
         "min": 0.0,
-        "max": 1.0,
-        "dimension": "arousal"
+        "max": 1.0
       }
     }
   },
