@@ -50,6 +50,7 @@ def removeDataset():
 def initializeDataset():
     datasetInfoJson = request.form.get('datasetInfo')
     datasetId = appController.initializeDataset(datasetInfoJson)
+    print(f"Initialized: {datasetId}")
     return jsonify({
         "id": datasetId
     })

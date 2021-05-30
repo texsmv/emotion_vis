@@ -6,12 +6,12 @@
       "Arousal": {
         "min": 0.0,
         "max": 1.0,
-        "dimension":"arousal"
+        "dimension": "arousal"
       },
       "Valence": {
         "min": 0.0,
         "max": 1.0,
-        "dimension":"valence"
+        "dimension": "valence"
       }
     },
     "categoricalMetadata": {

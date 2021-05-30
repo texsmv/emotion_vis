@@ -10,7 +10,7 @@ from mts.core.mtserie_dataset import MTSerieDataset
 from mts.core.mtserie import MTSerie
 from datetime import datetime, timedelta
 from datetime import date
-
+    
 
 def scaleToRange(OldValue, OldMin, OldMax, NewMin, NewMax):
     OldRange = (OldMax - OldMin)  
