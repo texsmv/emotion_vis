@@ -2,6 +2,14 @@
 emotion visualization server
 Tested with python-3.8.5
 
+### Requeriments
+git
+`$sudo apt-get install git`
+
+python-dev
+`$sudo apt-get install python-dev`
+
+
 ### Installation
 - Clone the repository
 `$git clone https://github.com/texsmv/emotion_vis_server`
