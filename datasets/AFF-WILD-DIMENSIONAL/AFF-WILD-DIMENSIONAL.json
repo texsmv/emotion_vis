@@ -1,5 +1,5 @@
 {
-  "id": "AFF-WILD-DIMENSIONAL",
+  "id": "aff-wild-dimensional",
   "type": "dimensional",
   "vocabulary": {
     "emotions": {
@@ -13,7 +13,10 @@
         "max": 1.0,
         "dimension": "valence"
       }
-    }
+    },
+    "identifiers":[
+      "id"
+    ]
   },
   "labels": [
     "frame_0",

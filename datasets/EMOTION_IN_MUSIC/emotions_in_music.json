@@ -25,7 +25,13 @@
         "Pop",
         "Rock"
       ]
-    }
+    },
+    "identifiers" : [
+      "id",
+      "artist",
+      "song title"
+    ]
+
   },
   "labels": [
     "0.0s",

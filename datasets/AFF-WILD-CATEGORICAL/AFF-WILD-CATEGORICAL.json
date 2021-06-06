@@ -1,5 +1,5 @@
 {
-  "id": "AFF-WILD-CATEGORICAL",
+  "id": "aff-wild-categorical",
   "type": "categorical",
   "vocabulary": {
     "emotions": {
@@ -31,7 +31,10 @@
         "min": 0.0,
         "max": 1.0
       }
-    }
+    },
+    "identifiers":[
+      "id"
+    ]
   },
   "labels": [
     "frame_0",

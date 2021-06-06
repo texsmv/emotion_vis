@@ -5,7 +5,7 @@ from .mtserie import MTSerie
 from numpy import unique
 from .distances import DistanceType
 from .projections import distance_matrix, ProjectionAlg, mds_projection, umap_projection, tsne_projection, isomap_projection
-from sklearn.cluster import SpectralClustering, KMeans, DBSCAN
+from sklearn.cluster import SpectralClustering, KMeans, DBSCAN, OPTICS
 
 
 class MTSerieDataset:
@@ -210,7 +210,7 @@ class MTSerieDataset:
             coords = tsne_projection(D, perplexity=projectionParam)
         elif projectionAlg == ProjectionAlg.UMAP:
             coords = umap_projection(D, n_neighbors=projectionParam)
-        
+
         for i in range(self.instanceLen):
             self._projections[self.ids[i]] = coords[i]
 
@@ -219,22 +219,10 @@ class MTSerieDataset:
             self.procesedMTSeries[self.ids[i]
                                   ] = self.mtseries[self.ids[i]].resample(rule)
 
-    def cluster_projections(self, n_clusters, coords):
+    def cluster_projections_kmeans(self, n_clusters, coords):
         coords = np.array(list(self._projections.values()))
 
-        # ! spectral clustering not working
-        # clustering = SpectralClustering(n_clusters=40,
-        #                         assign_labels="discretize",
-        #                         n_neighbors=2,
-        #                         random_state=0).fit(coords)
-        # return clustering.labels_
-
-        # * dbscan
-        # print(coords.shape)
-        # clustering = DBSCAN(eps=0.1, min_samples=2).fit(coords)
-        # fit model and predict clusters
-        # clusters = clustering.labels_
-
+        #  * kmeans
         k_means = KMeans(random_state=0, n_clusters=n_clusters)
         k_means.fit(coords)
         labels = k_means.predict(coords)
@@ -250,15 +238,23 @@ class MTSerieDataset:
             clusters[clusterLabel] = clusterIds
         return clusters
 
-    #! deprecated
-    # def query_all_by_range(self, begin, end):
-    #     #  todo check this
-    #     # assert self._isDataUniformInTime
-    #     result = {}
-    #     for id, mtserie in self.procesedMTSeries.items():
-    #         assert isinstance(mtserie, MTSerie)
-    #         result[id] = mtserie.range_query(begin, end)
-    #     return result
+    def cluster_projections_dbscan(self, coords, eps=0.2, min_samples=10):
+        coords = np.array(list(self._projections.values()))
+
+        # * dbscan
+        clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
+        labels = clustering.labels_
+
+        clusters = {}
+        clusterLabels = np.unique(labels)
+        for clusterLabel in clusterLabels:
+            clusterIds = []
+            for i in range(self.instanceLen):
+                if labels[i] == clusterLabel:
+                    clusterIds = clusterIds + [self.ids[i]]
+                    # self._clusterById[self.ids[i]] = clusterLabel
+            clusters[clusterLabel] = clusterIds
+        return clusters
 
     def get_mtseries_in_range(self, begin, end, ids=[], procesed=True) -> list:
         _ids = ids
@@ -335,7 +331,8 @@ class MTSerieDataset:
         if labels != None:
             settingsDict['labels'] = labels
         if self.isDataDated:
-            datesStr = [np.datetime_as_string(date) for date in self.get_datetimes()]
+            datesStr = [np.datetime_as_string(date)
+                        for date in self.get_datetimes()]
             datesStr = ["{}".format(date) for date in self.get_datetimes()]
             settingsDict['dates'] = datesStr
         if numericalMetadata != None:

@@ -147,14 +147,34 @@ def getDatasetProjection():
     return jsonify({'coords': coords, 'D_k': D_k})
 
 
-@app.route("/doClustering", methods=['POST'])
-def doClustering():
+@app.route("/kmeansClustering", methods=['POST'])
+def kmeansClustering():
     datasetId = request.form.get('datasetId')
     coords = json.loads(request.form.get('coords'))
     k = int(request.form.get('k'))
 
-    clusters = appController.doClustering(datasetId, coords, k)
+    clusters = appController.kmeans_clustering(
+        datasetId, coords, k=k
+    )
     clusters = {int(k): clusters[k] for k in clusters.keys()}
+
+    return jsonify(clusters)
+
+
+@app.route("/dbscanClustering", methods=['POST'])
+def dbscanClustering():
+    datasetId = request.form.get('datasetId')
+    coords = json.loads(request.form.get('coords'))
+    min_samples = int(request.form.get('min_samples'))
+    eps = float(request.form.get('eps'))
+
+    clusters = appController.dbscan_clustering(
+        datasetId, coords, eps=eps, min_samples=min_samples
+    )
+    clusters = {int(k): clusters[k] for k in clusters.keys()}
+
+    # removing outliers
+    clusters.pop(-1, None)
     return jsonify(clusters)
 
 

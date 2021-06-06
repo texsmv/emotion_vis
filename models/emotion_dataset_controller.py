@@ -26,6 +26,7 @@ INFO_LABELS = "labels"
 INFO_IS_DATED = "isDated"
 INFO_DOWNSAMPLE_RULES = "downsampleRules"
 INFO_IDS = "ids"
+INFO_IDENTIFIERS_LABELS = "identifiersLabels"
 INFO_CATEGORICAL_LABELS = "categoricalLabels"
 INFO_NUMERICAL_LABELS = "numericalLabels"
 INFO_TYPE = "type"  # * either 'dimensional' or 'categorical'
@@ -41,16 +42,19 @@ class AppController:
     def __init__(self):
         self.loadedDatasets = []
         self.localDatasetsIds = [
+            "wesad",
+            "case",
+            "aff-wild-categorical",
+            "aff-wild-dimensional"
             "ascertain",
             "drivers_workload",
             "drivers_stress",
-            "wesad_dimensional_2",
-            "wesad_dimensional_3",
-            "wesad_categorical_panas",
-            "wesad_categorical_stai",
-            "case_dimensional",
-            "case_categorical",
-            "emotions_in_music"
+            "emotions_in_music",
+            "afew_va",
+            # "wesad_dimensional_3",
+            # "wesad_categorical_panas",
+            # "wesad_categorical_stai",
+            # "case_categorical",
         ]
         self.datasets = {}
         # this info is changed according to the proccesing make on the original data
@@ -60,22 +64,19 @@ class AppController:
         if datasetId in self.loadedDatasets:
             return False
 
-        if datasetId == "wesad_dimensional_2":
+        if datasetId == "wesad":
             path_info = wesad_path_info_dimensional_2
             paths = wesad_paths
-        elif datasetId == "wesad_dimensional_3":
-            path_info = wesad_path_info_dimensional_3
-            paths = wesad_paths
-        elif datasetId == "wesad_categorical_panas":
-            path_info = wesad_path_info_categorical_panas
-            paths = wesad_paths
-        elif datasetId == "wesad_categorical_stai":
-            path_info = wesad_path_info_categorical_stai
-            paths = wesad_paths
-        elif datasetId == "case_dimensional":
-            path_info = case_path_info_dimensional
-            paths = case_paths
-        elif datasetId == "case_categorical":
+        # elif datasetId == "wesad_categorical_panas":
+        #     path_info = wesad_path_info_categorical_panas
+        #     paths = wesad_paths
+        # elif datasetId == "wesad_categorical_stai":
+        #     path_info = wesad_path_info_categorical_stai
+        #     paths = wesad_paths
+        # elif datasetId == "case_dimensional":
+        #     path_info = case_path_info_dimensional
+        #     paths = case_paths
+        elif datasetId == "case":
             path_info = case_path_info_categorical
             paths = case_paths
         elif datasetId == "ascertain":
@@ -90,6 +91,15 @@ class AppController:
         elif datasetId == "emotions_in_music":
             path_info = emotion_in_music_path_info
             paths = emotion_in_music_paths
+        elif datasetId == "afew_va":
+            path_info = afew_va_path_info
+            paths = afew_va_paths
+        elif datasetId == "aff-wild-categorical":
+            path_info = aff_wild_categorical_path_info
+            paths = aff_wild_categorical_paths
+        elif datasetId == "aff-wild-dimensional":
+            path_info = aff_wild_dimensional_path_info
+            paths = aff_wild_dimensional_paths
 
         with open('datasets/' + path_info, 'r') as file:
             dataInfoJson = file.read()
@@ -210,6 +220,8 @@ class AppController:
         if 'numericalMetadata' in self.datasetsInfo[datasetId]["vocabulary"]:
             dataInfo[INFO_NUMERICAL_LABELS] = self.datasetsInfo[datasetId]["vocabulary"]['numericalMetadata']
 
+        dataInfo[INFO_IDENTIFIERS_LABELS] = self.datasetsInfo[datasetId]["vocabulary"]["identifiers"]
+
         if "labels" in self.datasetsInfo[datasetId]:
             dataInfo[INFO_LABELS] = self.datasetsInfo[datasetId]["labels"]
 
@@ -241,7 +253,7 @@ class AppController:
         projectionParam: int = 5
     ):
         _D_k = D_k
-    
+
         # compute D_K if not previously calculated
         if _D_k == None:
             # * K Distance matrix
@@ -288,8 +300,17 @@ class AppController:
 
         return coordsDict, _D_k
 
-    def doClustering(self, datasetId, coords, k=4):
-        clusters = self.datasets[datasetId].cluster_projections(k, coords)
+    def dbscan_clustering(self, datasetId, coords, eps=0.2, min_samples=10):
+        # def doClustering(self, datasetId, coords, k=4):
+        clusters = self.datasets[datasetId].cluster_projections_dbscan(
+            coords, eps=eps, min_samples=min_samples
+        )
+        return clusters
+
+    def kmeans_clustering(self, datasetId, coords, k=4):
+        clusters = self.datasets[datasetId].cluster_projections_kmeans(
+            k, coords
+        )
         return clusters
 
     def getFishersDiscriminantRanking(self, datasetId, D_ks, blueCluster, redCluster):
