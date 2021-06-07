@@ -45,7 +45,7 @@ class AppController:
             "wesad",
             "case",
             "aff-wild-categorical",
-            "aff-wild-dimensional"
+            "aff-wild-dimensional",
             "ascertain",
             "drivers_workload",
             "drivers_stress",
