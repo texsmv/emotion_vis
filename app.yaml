@@ -1,0 +1,34 @@
+runtime: python37
+# env: flex
+# entrypoint: gunicorn -b :$PORT main:app
+basic_scaling:
+  max_instances: 1
+  idle_timeout: 10m
+
+# automatic_scaling:
+#   min_instances: 1
+#   max_instances: 1
+# runtime_config:
+#   python_version: 3.7
+
+# manual_scaling:
+#   instances: 1
+# instance_class: F4_HIGHMEM
+
+resources:
+  cpu: 1
+  memory_gb: 2
+  disk_size_gb: 10
+# liveness_check:
+#   check_interval_sec: 120
+#   timeout_sec: 40
+#   failure_threshold: 5
+#   success_threshold: 5
+#   initial_delay_sec: 500
+
+# readiness_check:
+#   check_interval_sec: 120
+#   timeout_sec: 40
+#   failure_threshold: 5
+#   success_threshold: 5
+#   app_start_timeout_sec: 1500

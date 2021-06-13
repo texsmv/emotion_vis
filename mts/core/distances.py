@@ -1,9 +1,10 @@
-import pyximport; pyximport.install()
-import numpy as np
-from tslearn.metrics import dtw, lcss
-from .matrix_profile import subsequences_indexes, join_matrix_profile, calc_MPdist
-from enum import Enum
 from fastdtw import fastdtw
+from enum import Enum
+from tslearn.metrics import dtw, lcss
+import numpy as np
+import pyximport
+pyximport.install()
+# from .matrix_profile import subsequences_indexes, join_matrix_profile, calc_MPdist
 
 
 class DistanceType(Enum):

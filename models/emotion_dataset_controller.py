@@ -1,5 +1,6 @@
 from local_datasets_info import *
-from mts.core.projections import ProjectionAlg, euclidean_distance_matrix, mds_projection, mp_distance_matrix, compute_k_distance_matrixes, compute_distance_matrix
+from mts.core.projections import ProjectionAlg, euclidean_distance_matrix, mds_projection, compute_k_distance_matrixes, compute_distance_matrix
+# from mts.core.projections import mp_distance_matrix
 from mts.core.utils import mtserieQueryToJsonStr, subsetSeparationRanking, fishersDiscriminantRanking, scale_layout
 from mts.core.distances import DistanceType, ts_euclidean_distance
 from utils.utils import mtserie_from_json

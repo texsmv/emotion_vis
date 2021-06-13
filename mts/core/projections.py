@@ -1,11 +1,11 @@
 import numpy as np
-import umap
+# import umap
 from sklearn.manifold import Isomap
 from numpy.core.fromnumeric import var
 from sklearn import manifold
 from .mtserie import MTSerie
 from .distances import ts_euclidean_distance, ts_dtw_distance, ts_mp_distance, ts_lcs_distance, DistanceType
-from .matrix_profile import mp_distance_matrix
+# from .matrix_profile import mp_distance_matrix
 from enum import Enum
 
 
