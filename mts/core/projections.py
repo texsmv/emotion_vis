@@ -1,5 +1,5 @@
 import numpy as np
-# import umap
+import umap
 from sklearn.manifold import Isomap
 from numpy.core.fromnumeric import var
 from sklearn import manifold
