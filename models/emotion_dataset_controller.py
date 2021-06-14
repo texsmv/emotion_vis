@@ -109,7 +109,6 @@ class AppController:
         for path in paths:
             with open(DATASET_PATH + path, 'r') as file:
                 jsonStr = file.read()
-                print(path)
                 self.addMtserieFromString(datasetId, jsonStr)
 
         return True
@@ -199,7 +198,6 @@ class AppController:
 
     def getDatasetInfo(self, datasetId):
         dataInfo = {}
-        print(self.datasets)
         dataInfo[INFO_IDS] = self.datasets[datasetId].ids
         dataInfo[INFO_MIN_VALUES] = self.getDatasetEmotionValues(
             datasetId, 'min')
@@ -330,15 +328,12 @@ class AppController:
     def getTemporalSummary(self, datasetId):
         values = self.datasets[datasetId].values()
         allVariables = self.datasets[datasetId].temporalVariables
-        print(allVariables)
-        print(values.shape)
         values = np.transpose(values, (2, 1, 0))  # to D, T, N shape
         summary = {}
         emotions = self.getDatasetEmotions(datasetId)
         summary['min'] = {}
         emotion_pos = [allVariables.index(emotions[i])
                        for i in range(len(emotions))]
-        print(emotion_pos)
         for i in range(len(emotions)):
             pos = emotion_pos[i]
             summary['min'][emotions[i]] = values[pos].min(axis=1).tolist()

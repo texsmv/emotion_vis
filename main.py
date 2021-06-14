@@ -130,8 +130,6 @@ def getDatasetProjection():
 
     distanceType = DistanceType(distance)
     projectionAlg = ProjectionAlg(projection)
-    print("Using distance: {}".format(distanceType))
-    print("Using projection: {}".format(projectionAlg))
     coords, D_k = appController.getProjection(
         datasetId,
         begin, end,
@@ -143,7 +141,6 @@ def getDatasetProjection():
         projectionParam=projectionParameter
     )
     D_k = {key: D_k[key].tolist() for key in D_k.keys()}
-    print(coords)
     return jsonify({'coords': coords, 'D_k': D_k})
 
 
@@ -201,26 +198,3 @@ def getTemporalSummary():
 
 if __name__ == "__main__":
     app.run()
-
-# from flask import Flask, render_template
-
-# app = Flask(__name__)
-
-
-# @app.route("/")
-# def homepage():
-#     return "<h1>Welcome to our server !!</h1>"
-
-
-# @app.route("/docs")
-# def docs():
-#     return "<h1>Welcome to our server docs!!</h1>"
-
-
-# @app.route("/about")
-# def about():
-#     return "<h1>Welcome to our server about!!</h1>"
-
-
-# if __name__ == "__main__":
-#     app.run(debug=True)
