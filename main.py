@@ -10,7 +10,7 @@ import numpy as np
 from flask import jsonify
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
 
 appController = AppController()
 
