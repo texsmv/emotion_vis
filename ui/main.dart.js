@@ -14596,7 +14596,7 @@ aCu:function aCu(){},
 aC4:function(){var s=0,r=P.a5(t.oK),q,p,o,n,m
 var $async$aC4=P.a1(function(a,b){if(a===1)return P.a2(b,r)
 while(true)switch(s){case 0:s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/routeGetDatasetsInfo",null),$async$aC4)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/routeGetDatasetsInfo",null),$async$aC4)
 case 3:p=b
 o=C.N.jz(0,B.nR(J.ab(U.nM(p.e).c.a,"charset")).dq(0,p.x),null)
 n=J.ad(o)
@@ -14610,7 +14610,7 @@ aC9:function(a){var s=0,r=P.a5(t.sO),q,p,o
 var $async$aC9=P.a1(function(b,c){if(b===1)return P.a2(c,r)
 while(true)switch(s){case 0:p=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/loadLocalDataset",P.aQ(["datasetId",a],p,p)),$async$aC9)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/loadLocalDataset",P.aQ(["datasetId",a],p,p)),$async$aC9)
 case 3:o=c
 if(J.e(J.ab(C.N.jz(0,B.nR(J.ab(U.nM(o.e).c.a,"charset")).dq(0,o.x),null),"state"),"success")){q=C.b8
 s=1
@@ -14622,7 +14622,7 @@ aCa:function(a){var s=0,r=P.a5(t.sO),q,p,o
 var $async$aCa=P.a1(function(b,c){if(b===1)return P.a2(c,r)
 while(true)switch(s){case 0:p=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/removeDataset",P.aQ(["datasetId",a],p,p)),$async$aCa)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/removeDataset",P.aQ(["datasetId",a],p,p)),$async$aCa)
 case 3:o=c
 if(J.e(J.ab(C.N.jz(0,B.nR(J.ab(U.nM(o.e).c.a,"charset")).dq(0,o.x),null),"state"),"success")){q=C.b8
 s=1
@@ -14634,7 +14634,7 @@ a31:function(a){var s=0,r=P.a5(t.lG),q,p,o
 var $async$a31=P.a1(function(b,c){if(b===1)return P.a2(c,r)
 while(true)switch(s){case 0:p=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/getDatasetInfo",P.aQ(["datasetId",a],p,p)),$async$a31)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/getDatasetInfo",P.aQ(["datasetId",a],p,p)),$async$a31)
 case 3:o=c
 q=C.N.jz(0,B.nR(J.ab(U.nM(o.e).c.a,"charset")).dq(0,o.x),null)
 s=1
@@ -14645,7 +14645,7 @@ a32:function(a,b,c,d){var s=0,r=P.a5(t.lG),q,p,o
 var $async$a32=P.a1(function(e,f){if(e===1)return P.a2(f,r)
 while(true)switch(s){case 0:p=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/getMTSeries",P.aQ(["datasetId",a,"end",C.N.eR(c,null),"begin",C.N.eR(b,null),"ids",C.N.eR(d,null)],p,p)),$async$a32)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/getMTSeries",P.aQ(["datasetId",a,"end",C.N.eR(c,null),"begin",C.N.eR(b,null),"ids",C.N.eR(d,null)],p,p)),$async$a32)
 case 3:o=f
 q=C.N.jz(0,B.nR(J.ab(U.nM(o.e).c.a,"charset")).dq(0,o.x),null)
 s=1
@@ -14656,7 +14656,7 @@ aC2:function(a,b){var s=0,r=P.a5(t.sO),q,p
 var $async$aC2=P.a1(function(c,d){if(c===1)return P.a2(d,r)
 while(true)switch(s){case 0:p=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/downsampleData",P.aQ(["datasetId",a,"rule",b],p,p)),$async$aC2)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/downsampleData",P.aQ(["datasetId",a,"rule",b],p,p)),$async$aC2)
 case 3:q=C.b8
 s=1
 break
@@ -14668,7 +14668,7 @@ while(true)switch(s){case 0:P.eQ("Distance "+d)
 P.eQ("Projection "+e)
 p=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/getDatasetProjection",P.aQ(["datasetId",a,"end",C.N.eR(c,null),"begin",C.N.eR(b,null),"alphas",C.N.eR(g,null),"D_k",C.N.eR(h,null),"oldCoords",C.N.eR(i,null),"distance",C.N.eR(d,null),"projection",C.N.eR(e,null),"projectionParameter",C.N.eR(f,null)],p,p)),$async$aC3)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/getDatasetProjection",P.aQ(["datasetId",a,"end",C.N.eR(c,null),"begin",C.N.eR(b,null),"alphas",C.N.eR(g,null),"D_k",C.N.eR(h,null),"oldCoords",C.N.eR(i,null),"distance",C.N.eR(d,null),"projection",C.N.eR(e,null),"projectionParameter",C.N.eR(f,null)],p,p)),$async$aC3)
 case 3:o=k
 q=C.N.jz(0,B.nR(J.ab(U.nM(o.e).c.a,"charset")).dq(0,o.x),null)
 s=1
@@ -14679,7 +14679,7 @@ aC1:function(a,b,c,d){var s=0,r=P.a5(t.lG),q,p,o
 var $async$aC1=P.a1(function(e,f){if(e===1)return P.a2(f,r)
 while(true)switch(s){case 0:p=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/dbscanClustering",P.aQ(["datasetId",a,"coords",C.N.eR(b,null),"eps",C.N.eR(c,null),"min_samples",C.N.eR(d,null)],p,p)),$async$aC1)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/dbscanClustering",P.aQ(["datasetId",a,"coords",C.N.eR(b,null),"eps",C.N.eR(c,null),"min_samples",C.N.eR(d,null)],p,p)),$async$aC1)
 case 3:o=f
 q=C.N.jz(0,B.nR(J.ab(U.nM(o.e).c.a,"charset")).dq(0,o.x),null)
 s=1
@@ -14690,7 +14690,7 @@ aC8:function(a,b,c){var s=0,r=P.a5(t.lG),q,p,o
 var $async$aC8=P.a1(function(d,e){if(d===1)return P.a2(e,r)
 while(true)switch(s){case 0:p=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/kmeansClustering",P.aQ(["datasetId",a,"coords",C.N.eR(b,null),"k",C.N.eR(c,null)],p,p)),$async$aC8)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/kmeansClustering",P.aQ(["datasetId",a,"coords",C.N.eR(b,null),"k",C.N.eR(c,null)],p,p)),$async$aC8)
 case 3:o=e
 q=C.N.jz(0,B.nR(J.ab(U.nM(o.e).c.a,"charset")).dq(0,o.x),null)
 s=1
@@ -14701,7 +14701,7 @@ aC5:function(a,b,c,d){var s=0,r=P.a5(t.f),q,p,o,n,m,l,k,j,i,h
 var $async$aC5=P.a1(function(e,f){if(e===1)return P.a2(f,r)
 while(true)switch(s){case 0:l=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/getFishersDiscriminantRanking",P.aQ(["datasetId",a,"D_k",C.N.eR(b,null),"blueCluster",C.N.eR(c,null),"redCluster",C.N.eR(d,null)],l,l)),$async$aC5)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/getFishersDiscriminantRanking",P.aQ(["datasetId",a,"D_k",C.N.eR(b,null),"blueCluster",C.N.eR(c,null),"redCluster",C.N.eR(d,null)],l,l)),$async$aC5)
 case 3:k=f
 j=t.e
 i=P.lh(C.N.jz(0,B.nR(J.ab(U.nM(k.e).c.a,"charset")).dq(0,k.x),null),l,j)
@@ -14721,7 +14721,7 @@ aC7:function(a){var s=0,r=P.a5(t.lG),q,p,o
 var $async$aC7=P.a1(function(b,c){if(b===1)return P.a2(c,r)
 while(true)switch(s){case 0:p=t.X
 s=3
-return P.a_(G.m7("http://emoviz.eastus.cloudapp.azure.com:5000/getTemporalSummary",P.aQ(["datasetId",a],p,p)),$async$aC7)
+return P.a_(G.m7("http://emovis.eastus.cloudapp.azure.com:5000/getTemporalSummary",P.aQ(["datasetId",a],p,p)),$async$aC7)
 case 3:o=c
 q=C.N.jz(0,B.nR(J.ab(U.nM(o.e).c.a,"charset")).dq(0,o.x),null)
 s=1
