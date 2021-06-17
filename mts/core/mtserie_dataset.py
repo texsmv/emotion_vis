@@ -256,7 +256,7 @@ class MTSerieDataset:
             clusters[clusterLabel] = clusterIds
         return clusters
 
-    def get_mtseries_in_range(self, begin, end, ids=[], procesed=True) -> list:
+    def get_mtseries_in_range(self, begin, end, ids=[], procesed=True) -> dict:
         _ids = ids
         if len(_ids) == 0:
             _ids = self.ids

@@ -79,7 +79,16 @@ def getMTSeries():
     begin = int(request.form.get('begin'))
     end = int(request.form.get('end'))
     ids = json.loads(request.form.get('ids'))
-    return jsonify(appController.getMTSeriesInRange(datasetId, ids, begin, end))
+    saveEmotions = request.form.get('saveEmotions', type=int)
+    if saveEmotions == 1:
+        saveEmotions = True
+    else:
+        saveEmotions = False
+
+    return jsonify(
+        appController.getMTSeriesInRange(
+            datasetId, ids, begin, end, saveEmotions=saveEmotions)
+    )
 
 
 @app.route("/downsampleData", methods=['POST'])
@@ -194,6 +203,41 @@ def getTemporalSummary():
     datasetId = request.form.get('datasetId')
     temporalSummary = appController.getTemporalSummary(datasetId)
     return jsonify(temporalSummary)
+
+
+@app.route("/getTemporalGroupSummary", methods=['POST'])
+def getTemporalGroupSummary():
+    datasetId = request.form.get('datasetId')
+    begin = request.form.get('begin', type=int)
+    end = request.form.get('end', type=int)
+    ids = json.loads(request.form.get('ids'))
+    temporalSummary = appController.getTemporalGroupSummary(
+        datasetId, ids, begin, end)
+    return jsonify(temporalSummary)
+
+
+@app.route("/getInstanceGroupSummary", methods=['POST'])
+def getInstanceGroupSummary():
+    datasetId = request.form.get('datasetId')
+    begin = request.form.get('begin', type=int)
+    end = request.form.get('end', type=int)
+    ids = json.loads(request.form.get('ids'))
+    temporalSummary = appController.getInstanceGroupSummary(
+        datasetId, ids, begin, end)
+    return jsonify(temporalSummary)
+
+
+@app.route("/getValenceArousalHistogram", methods=['POST'])
+def getValenceArousalHistogram():
+    datasetId = request.form.get('datasetId')
+    begin = request.form.get('begin', type=int)
+    end = request.form.get('end', type=int)
+    ids = json.loads(request.form.get('ids'))
+    arousal = request.form.get('arousal')
+    valence = request.form.get('valence')
+    histogram, maxCellCount = appController.getValenceArousalHistogram(
+        datasetId, ids, begin, end, valence, arousal)
+    return jsonify({'histogram': histogram, 'cellCount': maxCellCount})
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ from mts.core.mtserie_dataset import MTSerieDataset
 from numpy.lib.index_tricks import CClass
 from mts.core.mtserie import MTSerie
 from dateutil import parser
+from math import *
 import datetime
 import numpy as np
 import sys
@@ -37,6 +38,11 @@ SETTINGS_LOWER_BOUNDS = "globalEmotionLowerBound"
 SETTINGS_UPPER_BOUNDS = "globalEmotionUpperBound"
 
 DATASET_PATH = "datasets/"
+
+
+def rangeConverter(oldValue, oldMin, oldMax,
+                   newMin, newMax):
+    return (((oldValue - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
 
 
 class AppController:
@@ -154,23 +160,24 @@ class AppController:
         id = self.addMtserieFromString(datasetId, eml)
         return True
 
-    def getMTSeriesInRange(self, datasetId, ids, begin, end):
+    def getMTSeriesInRange(self, datasetId, ids, begin, end, saveEmotions: bool = False):
         query = self.datasets[datasetId].get_mtseries_in_range(
             begin, end, ids, procesed=True)
         resultMap = {id: self.mtserieToMap(
-            query[id]) for id in list(query.keys())}
+            query[id], saveEmotions=saveEmotions) for id in list(query.keys())}
         return resultMap
 
     def downsampleDataset(self, datasetId, rule):
         self.datasets[datasetId].downsample_data(rule)
 
-    def mtserieToMap(self, mtserie):
+    def mtserieToMap(self, mtserie, saveEmotions: bool = False):
         assert isinstance(mtserie, MTSerie)
         mtserieMap = {}
-        temporalVariables = {}
-        for varName in mtserie.labels:
-            temporalVariables[varName] = list(mtserie.get_serie(varName))
-        mtserieMap["temporalVariables"] = temporalVariables
+        if saveEmotions:
+            temporalVariables = {}
+            for varName in mtserie.labels:
+                temporalVariables[varName] = list(mtserie.get_serie(varName))
+            mtserieMap["temporalVariables"] = temporalVariables
         mtserieMap["index"] = [str(idx) for idx in mtserie.dataframe.index]
         mtserieMap["metadata"] = mtserie.info
         mtserieMap["categoricalFeatures"] = list(
@@ -324,6 +331,201 @@ class AppController:
         for varName in variables:
             variablesRanks[varName] = j_s[varName]
         return variablesRanks
+
+    def getTemporalGroupSummary(
+        self,
+        datasetId,
+        ids,
+        begin,
+        end
+    ):
+        mtseries = self.datasets[datasetId].get_mtseries_in_range(
+            begin,
+            end,
+            ids,
+            procesed=True
+        )
+        variables = self.datasets[datasetId].temporalVariables
+        emotions = np.array([[mtseries[p_id].get_serie(var)
+                            for var in variables] for p_id in ids])
+        emotions = np.transpose(emotions, (1, 0, 2))
+        summary = {}
+        summary['min'] = {}
+        for i in range(len(variables)):
+            summary['min'][variables[i]] = emotions[i].min(axis=0).tolist()
+
+        summary['max'] = {}
+        for i in range(len(variables)):
+            summary['max'][variables[i]] = emotions[i].max(axis=0).tolist()
+
+        summary['mean'] = {}
+        for i in range(len(variables)):
+            summary['mean'][variables[i]] = emotions[i].mean(axis=0).tolist()
+
+        summary['std'] = {}
+        for i in range(len(variables)):
+            summary['std'][variables[i]] = emotions[i].std(axis=0).tolist()
+
+        return summary
+
+    def getInstanceGroupSummary(
+        self,
+        datasetId,
+        ids,
+        begin,
+        end
+    ):
+        mtseries = self.datasets[datasetId].get_mtseries_in_range(
+            begin,
+            end,
+            ids,
+            procesed=True
+        )
+        variables = self.datasets[datasetId].temporalVariables
+        emotions = np.array([[mtseries[p_id].get_serie(var)
+                            for var in variables] for p_id in ids])
+        emotions = np.transpose(emotions, (1, 0, 2))
+        summary = {}
+        summary['min'] = {}
+        for i in range(len(variables)):
+            summary['min'][variables[i]] = emotions[i].min()
+
+        summary['max'] = {}
+        for i in range(len(variables)):
+            summary['max'][variables[i]] = emotions[i].max()
+
+        summary['mean'] = {}
+        for i in range(len(variables)):
+            summary['mean'][variables[i]] = emotions[i].mean()
+
+        summary['std'] = {}
+        for i in range(len(variables)):
+            summary['std'][variables[i]] = emotions[i].std()
+
+        return summary
+
+    def getInstanceGroupSummary(
+        self,
+        datasetId,
+        ids,
+        begin,
+        end
+    ):
+        mtseries = self.datasets[datasetId].get_mtseries_in_range(
+            begin,
+            end,
+            ids,
+            procesed=True
+        )
+        variables = self.datasets[datasetId].temporalVariables
+        emotions = np.array([[mtseries[p_id].get_serie(var)
+                            for var in variables] for p_id in ids])
+        emotions = np.transpose(emotions, (1, 0, 2))
+        summary = {}
+        summary['min'] = {}
+        for i in range(len(variables)):
+            summary['min'][variables[i]] = emotions[i].min()
+
+        summary['max'] = {}
+        for i in range(len(variables)):
+            summary['max'][variables[i]] = emotions[i].max()
+
+        summary['mean'] = {}
+        for i in range(len(variables)):
+            summary['mean'][variables[i]] = emotions[i].mean()
+
+        summary['std'] = {}
+        for i in range(len(variables)):
+            summary['std'][variables[i]] = emotions[i].std()
+
+        return summary
+
+    def getValenceArousalHistogram(
+        self,
+        datasetId,
+        ids,
+        begin,
+        end,
+        valenceVar,
+        arousalVar
+    ):
+        mtseries = self.datasets[datasetId].get_mtseries_in_range(
+            begin,
+            end,
+            ids,
+            procesed=True
+        )
+        n_sideBins: int = 20
+        valenceEmotions = np.array([mtseries[p_id].get_serie(valenceVar)
+                                    for p_id in ids]).flatten()
+        arousalEmotions = np.array([mtseries[p_id].get_serie(arousalVar)
+                                    for p_id in ids]).flatten()
+        histogram = np.zeros([n_sideBins, n_sideBins])
+        minValence = self.getDatasetEmotionValues(datasetId, "min")[valenceVar]
+        maxValence = self.getDatasetEmotionValues(datasetId, "max")[valenceVar]
+        minArousal = self.getDatasetEmotionValues(datasetId, "min")[arousalVar]
+        maxArousal = self.getDatasetEmotionValues(datasetId, "max")[arousalVar]
+        maxCellCount = 0
+        for i in range(len(valenceEmotions)):
+            x = floor(rangeConverter(
+                valenceEmotions[i],
+                minValence,
+                maxValence,
+                0.0,
+                float(n_sideBins - 1)
+            ))
+            y = floor(rangeConverter(
+                arousalEmotions[i],
+                minArousal,
+                maxArousal,
+                0.0,
+                (n_sideBins - 1),
+            ))
+            print(
+                f"x: {x}, y: {y}, valence: {valenceEmotions[i]}, arousal: {arousalEmotions[i]}")
+
+            histogram[x][y] = histogram[x][y] + 1
+            if (histogram[x][y] > maxCellCount):
+                maxCellCount = histogram[x][y]
+
+        histogram = histogram.flatten()
+        return histogram.tolist(), maxCellCount
+
+    def getGroupSummary(
+        self,
+        datasetId,
+        ids,
+        begin,
+        end
+    ):
+        mtseries = self.datasets[datasetId].get_mtseries_in_range(
+            begin,
+            end,
+            ids,
+            procesed=True
+        )
+        variables = self.datasets[datasetId].temporalVariables
+        emotions = np.array([[mtseries[p_id].get_serie(var)
+                            for var in variables] for p_id in ids])
+        emotions = np.transpose(emotions, (1, 0, 2))
+        summary = {}
+        summary['min'] = {}
+        for i in range(len(variables)):
+            summary['min'][variables[i]] = emotions[i].min(axis=0).tolist()
+
+        summary['max'] = {}
+        for i in range(len(variables)):
+            summary['max'][variables[i]] = emotions[i].max(axis=0).tolist()
+
+        summary['mean'] = {}
+        for i in range(len(variables)):
+            summary['mean'][variables[i]] = emotions[i].mean(axis=0).tolist()
+
+        summary['std'] = {}
+        for i in range(len(variables)):
+            summary['std'][variables[i]] = emotions[i].std(axis=0).tolist()
+
+        return summary
 
     def getTemporalSummary(self, datasetId):
         values = self.datasets[datasetId].values()
