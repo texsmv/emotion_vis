@@ -481,8 +481,6 @@ class AppController:
                 0.0,
                 (n_sideBins - 1),
             ))
-            print(
-                f"x: {x}, y: {y}, valence: {valenceEmotions[i]}, arousal: {arousalEmotions[i]}")
 
             histogram[x][y] = histogram[x][y] + 1
             if (histogram[x][y] > maxCellCount):
