@@ -1,6 +1,0 @@
-include: package:lint/analysis_options_package.yaml
-
-analyzer:
-  strong-mode:
-    implicit-casts: true
-    implicit-dynamic: true
