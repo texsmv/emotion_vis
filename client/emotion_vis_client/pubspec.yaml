@@ -1,0 +1,62 @@
+name: emotion_vis_client
+description: A new Flutter project.
+
+# The following line prevents the package from being accidentally published to
+# pub.dev using `pub publish`. This is preferred for private packages.
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.2
+  file_picker: ^3.0.2+2
+  flutter_colorpicker: ^0.3.4
+  flutter_icons: ^1.1.0
+  flutter_xlider: ^3.4.0
+  get: ^3.26.0
+  loader_overlay: ^2.0.0
+  google_fonts: ^1.1.1
+  menu_button: ^1.2.1
+  percent_indicator: ^2.1.8
+  random_color: ^1.0.5
+  touchable:
+  tuple: ^1.0.3
+  graphic: ^0.3.0
+  intl: ^0.16.1
+  rainbow_color: ^2.0.1
+  auto_size_text: ^2.1.0
+  expandable: ^5.0.1
+  numberpicker: ^2.1.1
+  syncfusion_flutter_charts: ^18.4.49
+  syncfusion_flutter_sliders: ^18.4.49-beta
+  glass_kit: ^2.0.0
+  charts_painter: ^1.1.0
+  prefab_animations:
+    git:
+      url: git://github.com/texsmv/prefab_animations.git
+      ref: master
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lint: ^1.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter.
+flutter:
+  assets:
+    - assets/
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
