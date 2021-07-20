@@ -1,0 +1,8 @@
+embeddings {
+  tensor_name: "features:0"
+  sprite {
+    image_path: "sprites.png"
+    single_image_dim: 45
+    single_image_dim: 45
+  }
+}

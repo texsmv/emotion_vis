@@ -1,6 +1,6 @@
 // const String hostUrl = 'https://emotionvis.herokuapp.com/';
-// const String hostUrl = 'http://10.0.2.2:5000/';
-const String hostUrl = 'http://127.0.0.1:5000/';
+const String hostUrl = 'http://10.0.2.2:5000/';
+// const String hostUrl = 'http://127.0.0.1:5000/';
 // const String hostUrl = 'http://localhost:5000/';
 // const String hostUrl = 'http://20.102.61.125:5000/';
 // const String hostUrl = 'http://20.85.219.95:5000/';
