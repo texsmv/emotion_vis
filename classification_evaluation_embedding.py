@@ -81,8 +81,8 @@ rc_config['mts_rep'] = 'reservoir'         # MTS representation:  {'last', 'mean
 rc_config['w_ridge_embedding'] = 10.0      # regularization parameter of the ridge regression
 
 # Readout
-rc_config['readout_type'] = 'svm'           # by setting None, the input representations will be stored
-
+# rc_config['readout_type'] = 'svm'           # by setting None, the input representations will be stored
+rc_config['readout_type'] = 'svm'
 
 cnn_n_epochs = 50
 cnn_batch_size = 50

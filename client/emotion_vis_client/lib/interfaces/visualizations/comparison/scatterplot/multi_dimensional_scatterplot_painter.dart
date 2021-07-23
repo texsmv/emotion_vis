@@ -105,8 +105,12 @@ class MultiDimensionalScatterplotPainter extends CustomPainter {
 
   double opacityByValue(int histogramVal, int maxCellCount) {
     if (histogramVal == 0) return 0;
-    return uiUtilRangeConverter(
+    double opacity = uiUtilRangeConverter(
         histogramVal.toDouble(), 1, maxCellCount.toDouble(), 0.1, 1.0);
+    if (opacity > 1) {
+      return 1;
+    }
+    return opacity;
   }
 
   @override

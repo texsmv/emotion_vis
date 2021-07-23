@@ -3,6 +3,7 @@ from mts.core.projections import ProjectionAlg, euclidean_distance_matrix, mds_p
 # from mts.core.projections import mp_distance_matrix
 from mts.core.utils import mtserieQueryToJsonStr, subsetSeparationRanking, fishersDiscriminantRanking, scale_layout
 from mts.core.distances import DistanceType, ts_euclidean_distance
+from sklearn.metrics.pairwise import cosine_similarity
 from utils.utils import mtserie_from_json
 from mts.core.mtserie_dataset import MTSerieDataset
 from numpy.lib.index_tricks import CClass
@@ -13,8 +14,13 @@ import datetime
 import numpy as np
 import sys
 import json
+import umap
+
+sys.path.insert(1, '/home/texs/Documents/Kusisqa/repositories/Time-series-classification-and-clustering-with-Reservoir-Computing/code')
 
 sys.path.append("..")
+
+from modules import RC_model
 
 
 INFO_MIN_VALUES = "globalEmotionMin"
@@ -45,6 +51,32 @@ def rangeConverter(oldValue, oldMin, oldMax,
     return (((oldValue - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
 
 
+rc_config = {}
+
+# * Reservoir cnn_settings
+rc_config['n_internal_units'] = 100        # size of the reservoir
+rc_config['spectral_radius'] = 0.59        # largest eigenvalue of the reservoir
+rc_config['leak'] = 0.6                    # amount of leakage in the reservoir state update (None or 1.0 --> no leakage)
+rc_config['connectivity'] = 0.35           # percentage of nonzero connections in the reservoir
+rc_config['input_scaling'] = 0.1           # scaling of the input weights
+rc_config['noise_level'] = 0.01            # noise in the reservoir state update
+rc_config['n_drop'] = 5                    # transient states to be dropped
+rc_config['bidir'] = True                  # if True, use bidirectional reservoir
+rc_config['circ'] = False                  # use reservoir with circle topology
+
+# Dimensionality reduction
+rc_config['dimred_method'] ='tenpca'       # options: {None (no dimensionality reduction), 'pca', 'tenpca'}
+# rc_config['dimred_method'] = 'None'
+# rc_config['n_dim'] = 10                   # number of resulting dimensions after the dimensionality reduction procedure
+rc_config['n_dim'] = 20
+# MTS representation
+rc_config['mts_rep'] = 'reservoir'         # MTS representation:  {'last', 'mean', 'output', 'reservoir'}
+# rc_config['mts_rep'] = 'reservoir'
+rc_config['w_ridge_embedding'] = 10.0      # regularization parameter of the ridge regression
+
+# Readout
+rc_config['readout_type'] = 'svm'           # by setting None, the input representations will be stored
+rc_config['readout_type'] = None
 class AppController:
     def __init__(self):
         self.loadedDatasets = []
@@ -258,6 +290,52 @@ class AppController:
         projectionAlg: ProjectionAlg = ProjectionAlg.MDS,
         projectionParam: int = 5
     ):
+        rcm =  RC_model(
+            reservoir=None,     
+            n_internal_units=rc_config['n_internal_units'],
+            spectral_radius=rc_config['spectral_radius'],
+            leak=rc_config['leak'],
+            connectivity=rc_config['connectivity'],
+            input_scaling=rc_config['input_scaling'],
+            noise_level=rc_config['noise_level'],
+            circle=rc_config['circ'],
+            n_drop=rc_config['n_drop'],
+            bidir=rc_config['bidir'],
+            dimred_method=rc_config['dimred_method'], 
+            n_dim=rc_config['n_dim'],
+            mts_rep=rc_config['mts_rep'],
+            w_ridge_embedding=rc_config['w_ridge_embedding'],
+            readout_type=rc_config['readout_type'] 
+        )
+        X = self.datasets[datasetId].values()
+        print("Shape")
+        print(X.shape)
+        rcm.train(X)
+        mts_representations = rcm.input_repr
+
+        similarity_matrix = cosine_similarity(mts_representations)
+        similarity_matrix = (similarity_matrix + 1.0)/2.0
+        print(similarity_matrix.shape)
+
+        D = similarity_matrix
+
+        reducer = umap.UMAP()
+        coords = reducer.fit_transform(mts_representations)
+
+        coords = scale_layout(coords)
+        # return coords as dict
+        coordsDict = {}
+        ids = self.datasets[datasetId].ids
+        for i in range(len(ids)):
+            id = ids[i]
+            coordsDict[id] = coords[i].tolist()
+        
+        for i in range(self.datasets[datasetId].instanceLen):
+            self.datasets[datasetId]._projections[self.datasets[datasetId].ids[i]] = coords[i]
+
+        # return coordsDict
+
+
         _D_k = D_k
 
         # compute D_K if not previously calculated
@@ -270,41 +348,55 @@ class AppController:
                 self.getDatasetEmotions(datasetId),
                 distanceType
             )
-
-        # * Distance matrix
-        D = compute_distance_matrix(
-            _D_k, alphas, self.datasets[datasetId].instanceLen)
-
-        # * Projection
-        self.datasets[datasetId].compute_projection(
-            D,
-            projectionAlg=projectionAlg,
-            projectionParam=projectionParam
-        )
-
-        coords = np.array([self.datasets[datasetId]._projections[id]
-                          for id in self.datasets[datasetId].ids])
-
-        if isinstance(oldCoords, np.ndarray):
-            P = coords
-            Q = oldCoords
-            A = P.transpose().dot(Q)
-            u, s, vt = np.linalg.svd(A, full_matrices=True)
-            v = vt.transpose()
-            ut = u.transpose()
-            r = np.sign(np.linalg.det(v.dot(ut)))
-            R = v.dot(np.array([[1, 0], [0, r]])).dot(ut)
-            coords = R.dot(P.transpose()).transpose()
-
-        coords = scale_layout(coords)
-        # return coords as dict
-        coordsDict = {}
-        ids = self.datasets[datasetId].ids
-        for i in range(len(ids)):
-            id = ids[i]
-            coordsDict[id] = coords[i].tolist()
-
+        
         return coordsDict, _D_k
+        # _D_k = D_k
+
+        # # compute D_K if not previously calculated
+        # if _D_k == None:
+        #     # * K Distance matrix
+        #     _D_k = self.compute_D_k(
+        #         datasetId,
+        #         begin,
+        #         end,
+        #         self.getDatasetEmotions(datasetId),
+        #         distanceType
+        #     )
+
+        # # * Distance matrix
+        # D = compute_distance_matrix(
+        #     _D_k, alphas, self.datasets[datasetId].instanceLen)
+
+        # # * Projection
+        # self.datasets[datasetId].compute_projection(
+        #     D,
+        #     projectionAlg=projectionAlg,
+        #     projectionParam=projectionParam
+        # )
+
+        # coords = np.array([self.datasets[datasetId]._projections[id]
+        #                   for id in self.datasets[datasetId].ids])
+
+        # if isinstance(oldCoords, np.ndarray):
+        #     P = coords
+        #     Q = oldCoords
+        #     A = P.transpose().dot(Q)
+        #     u, s, vt = np.linalg.svd(A, full_matrices=True)
+        #     v = vt.transpose()
+        #     ut = u.transpose()
+        #     r = np.sign(np.linalg.det(v.dot(ut)))
+        #     R = v.dot(np.array([[1, 0], [0, r]])).dot(ut)
+        #     coords = R.dot(P.transpose()).transpose()
+
+        # coords = scale_layout(coords)
+        # # return coords as dict
+        # coordsDict = {}
+        # ids = self.datasets[datasetId].ids
+        # for i in range(len(ids)):
+        #     id = ids[i]
+        #     coordsDict[id] = coords[i].tolist()
+
+        # return coordsDict, _D_k
 
     def dbscan_clustering(self, datasetId, coords, eps=0.2, min_samples=10):
         # def doClustering(self, datasetId, coords, k=4):
