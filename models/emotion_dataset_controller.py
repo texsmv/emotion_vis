@@ -417,7 +417,9 @@ class AppController:
         blueIndexes = [ids.index(e) for e in blueCluster]
         redIndexes = [ids.index(e) for e in redCluster]
 
-        j_s = fishersDiscriminantRanking(D_ks, blueIndexes, redIndexes)
+        # j_s = fishersDiscriminantRanking(D_ks, blueIndexes, redIndexes)
+        
+
         variablesRanks = {}
         variables = list(D_ks.keys())
         for varName in variables:

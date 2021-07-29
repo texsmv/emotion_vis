@@ -19,6 +19,7 @@ from sklearn.svm import SVC
 from sklearn.preprocessing import MinMaxScaler
 from sklearn import preprocessing
 from sktime.utils.data_io import load_from_tsfile_to_dataframe
+from sklearn.decomposition import PCA
 
 import tensorflow as tf
 import numpy as np
@@ -60,6 +61,8 @@ from air_quality import trainAutoencoder
 rc_config = {}
 
 # * Reservoir cnn_settings
+rc_config['n_internal_units_m'] = 20
+rc_config['n_dim_m'] = 10
 rc_config['n_internal_units'] = 20        # size of the reservoir
 rc_config['spectral_radius'] = 0.59        # largest eigenvalue of the reservoir
 rc_config['leak'] = 0.6                    # amount of leakage in the reservoir state update (None or 1.0 --> no leakage)
@@ -76,8 +79,8 @@ rc_config['dimred_method'] ='tenpca'       # options: {None (no dimensionality r
 # rc_config['n_dim'] = 10                   # number of resulting dimensions after the dimensionality reduction procedure
 rc_config['n_dim'] = 10
 # MTS representation
-rc_config['mts_rep'] = 'reservoir'         # MTS representation:  {'last', 'mean', 'output', 'reservoir'}
-# rc_config['mts_rep'] = 'reservoir'
+# rc_config['mts_rep'] = 'reservoir'         # MTS representation:  {'last', 'mean', 'output', 'reservoir'}
+rc_config['mts_rep'] = 'reservoir'
 rc_config['w_ridge_embedding'] = 10.0      # regularization parameter of the ridge regression
 
 # Readout
@@ -226,6 +229,46 @@ def get_embeddings(
         input_repr_tr = rcm.train(x_train, y_train)
         accuracy, f1, input_repr_te = rcm.test(x_test, y_test)
         return input_repr_tr, input_repr_te
+
+    if(algorithm == "rc2"):
+        N, T, D = x_train.shape
+        encodings_tr = []
+        encodings_te = []
+        for i in range(D):
+            train = np.expand_dims(x_train[:,:,i], axis=2)
+            test = np.expand_dims(x_test[:,:,i], axis=2)
+            rcm =  RC_model(
+                reservoir=None,     
+                n_internal_units=rc_config['n_internal_units_m'],
+                spectral_radius=rc_config['spectral_radius'],
+                leak=rc_config['leak'],
+                connectivity=rc_config['connectivity'],
+                input_scaling=rc_config['input_scaling'],
+                noise_level=rc_config['noise_level'],
+                circle=rc_config['circ'],
+                n_drop=rc_config['n_drop'],
+                bidir=rc_config['bidir'],
+                dimred_method=rc_config['dimred_method'], 
+                n_dim=rc_config['n_dim_m'],
+                mts_rep=rc_config['mts_rep'],
+                w_ridge_embedding=rc_config['w_ridge_embedding'],
+                readout_type=rc_config['readout_type'] 
+            )
+            input_repr_tr = rcm.train(x_train, y_train)
+            _, _, input_repr_te = rcm.test(x_test, y_test)
+            encodings_tr += [input_repr_tr]
+            encodings_te += [input_repr_te]
+
+        encodings_tr = np.concatenate(np.array(encodings_tr), axis=1)
+        encodings_te = np.concatenate(np.array(encodings_te), axis=1)
+
+        # pca = PCA(n_components=50)
+        # pca.fit(encodings_tr)
+        # encodings_tr = pca.transform(encodings_tr)
+        # encodings_te = pca.transform(encodings_te)
+
+        
+        return encodings_tr, encodings_te
     
     if(algorithm == "lstm"):
         N, T, D = x_train.shape
@@ -352,6 +395,9 @@ if __name__ == "__main__":
 
         rc_config['n_dim'] = 20
         rc_config['n_internal_units'] = 100
+        rc_config['n_dim_m'] = 10
+        rc_config['n_internal_units_m'] = 20
+        # rc_config['n_internal_units'] = 20
 
         cnn_settings['embedding'] = 25
         cnn_n_epochs = 150
@@ -368,6 +414,8 @@ if __name__ == "__main__":
 
             rc_config['n_dim'] = 20
             rc_config['n_internal_units'] = 100
+            rc_config['n_dim_m'] = 10
+            rc_config['n_internal_units_m'] = 100
 
             cnn_settings['embedding'] = 25
             cnn_n_epochs = 100
@@ -382,6 +430,8 @@ if __name__ == "__main__":
 
             rc_config['n_dim'] = 20
             rc_config['n_internal_units'] = 100
+            rc_config['n_dim_m'] = 10
+            rc_config['n_internal_units_m'] = 55
 
             cnn_settings['crop_end'] = True
             cnn_settings['embedding'] = 5
@@ -397,6 +447,8 @@ if __name__ == "__main__":
 
             rc_config['n_dim'] = 20
             rc_config['n_internal_units'] = 100
+            rc_config['n_dim_m'] = 20
+            rc_config['n_internal_units_m'] = 100
 
             cnn_settings['crop_end'] = True
             cnn_settings['embedding'] = 25
@@ -412,6 +464,8 @@ if __name__ == "__main__":
 
             rc_config['n_dim'] = 20
             rc_config['n_internal_units'] = 400
+            rc_config['n_dim_m'] = 30
+            rc_config['n_internal_units_m'] = 200
 
             cnn_settings['embedding'] = 10
             cnn_n_epochs = 5
@@ -427,6 +481,8 @@ if __name__ == "__main__":
             
             rc_config['n_dim'] = 20
             rc_config['n_internal_units'] = 100
+            rc_config['n_dim_m'] = 20
+            rc_config['n_internal_units_m'] = 50
 
             cnn_settings['embedding'] = 25
             cnn_n_epochs = 200
@@ -434,7 +490,8 @@ if __name__ == "__main__":
 
             lstm_embedding = 25
             lstm_n_epochs = 100
-            lstm_batch_size = 150
+            lstm_batch_size = 15
+
 
         N, D = X_train.shape
         N_te = X_test.shape[0]
@@ -523,7 +580,8 @@ if __name__ == "__main__":
     plt.scatter(
         coords[:, 0], coords[:, 1], marker = 'o', cmap=cmap, c =clusters, s=15
     )
-    plt.savefig('images/' + args['dataset'] + '_' +  args['alg'] + '.png')
+    # plt.savefig('images/' + args['dataset'] + '_' +  args['alg'] + '.png')
+
     # plt.savefig('images/' + args['dataset'] + '_' +  'multidr_nd' + '.png')
     # plt.savefig('images/' + args['dataset'] + '_' +  'multidr_nt' + '.png')
     plt.show()
