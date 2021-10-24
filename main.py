@@ -120,17 +120,10 @@ def getDatasetProjection():
     datasetId = request.form.get('datasetId')
     begin = request.form.get('begin', type=int)
     end = request.form.get('end', type=int)
-    alphas = request.form.get('alphas', type=dict)
     distance = request.form.get('distance', type=int)
-    projection = request.form.get('projection', type=int)
-    projectionParameter = request.form.get('projectionParameter', type=int)
-    distance = request.form.get('distance', type=int)
-    D_k = json.loads(request.form.get('D_k'))
+    projectionParameter = request.form.get('projectionParameter', 5, type=int, )
+    
     oldCoords = json.loads(request.form.get('oldCoords'))
-    if len(D_k) == 0:
-        D_k = None
-    else:
-        D_k = {key: np.array(D_k[key]) for key in D_k.keys()}
     if len(oldCoords) == 0:
         oldCoords = None
     else:
@@ -138,19 +131,17 @@ def getDatasetProjection():
     alphas = json.loads(request.form.get('alphas'))
 
     distanceType = DistanceType(distance)
-    projectionAlg = ProjectionAlg(projection)
-    coords, D_k = appController.getProjection(
+    projectionAlg = ProjectionAlg.UMAP
+    print("parameter")
+    print(projectionParameter)
+    coords = appController.getProjection(
         datasetId,
         begin, end,
-        alphas,
         oldCoords=oldCoords,
-        D_k=D_k,
-        distanceType=distanceType,
         projectionAlg=projectionAlg,
         projectionParam=projectionParameter
     )
-    D_k = {key: D_k[key].tolist() for key in D_k.keys()}
-    return jsonify({'coords': coords, 'D_k': D_k})
+    return jsonify({'coords': coords})
 
 
 @app.route("/kmeansClustering", methods=['POST'])
@@ -187,13 +178,13 @@ def dbscanClustering():
 @app.route("/getFishersDiscriminantRanking", methods=['POST'])
 def getFishersDiscriminantRanking():
     datasetId = request.form.get('datasetId')
-    D_k = json.loads(request.form.get('D_k'))
-    D_k = {key: np.array(D_k[key]) for key in D_k.keys()}
+    # D_k = json.loads(request.form.get('D_k'))
+    # D_k = {key: np.array(D_k[key]) for key in D_k.keys()}
     blueCluster = json.loads(request.form.get('blueCluster'))
     redCluster = json.loads(request.form.get('redCluster'))
 
     j_s = appController.getFishersDiscriminantRanking(
-        datasetId, D_k, blueCluster, redCluster)
+        datasetId, blueCluster, redCluster)
 
     return jsonify(j_s)
 

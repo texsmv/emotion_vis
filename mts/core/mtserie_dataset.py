@@ -342,7 +342,7 @@ class MTSerieDataset:
             settingsDict['vocabulary']['categoricalMetadata'] = categoricalMetadata
 
         if identifiers != None:
-            settingsDict['identifiers'] = identifiers
+            settingsDict['vocabulary']['identifiers'] = identifiers
 
         json.dump(settingsDict, settingsFile, indent=2)
 

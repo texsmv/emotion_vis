@@ -47,7 +47,7 @@ class ClusteredView extends GetView<ProjectionViewUiController> {
                   child: Column(
                     children: [
                       const Text(
-                        "Emotion dimensions ranking",
+                        "Variables comparison",
                         style: TextStyle(
                           fontSize: 16,
                           color: pColorAccent,

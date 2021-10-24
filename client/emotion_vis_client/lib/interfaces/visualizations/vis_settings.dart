@@ -43,6 +43,14 @@ class VisSettings {
   String get arousal => datasetSettings.arousal;
   double get limitSize => upperLimit - lowerLimit;
 
+  List<Color> get colorsList {
+    final List<Color> list = [];
+    for (var i = 0; i < variablesNames.length; i++) {
+      list.add(colors[variablesNames[i]]);
+    }
+    return list;
+  }
+
   VisSettings({
     this.colors,
     // this.variablesNames,

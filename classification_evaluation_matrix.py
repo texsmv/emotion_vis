@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import argparse
 
+from timeit import default_timer as timer
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -147,6 +148,31 @@ if __name__ == "__main__":
         elif args["dataset"] == "handwritting":
             X_train, y_train = load_from_tsfile_to_dataframe('datasets/Handwriting/Handwriting_TRAIN.ts')
             X_test, y_test = load_from_tsfile_to_dataframe('datasets/Handwriting/Handwriting_TEST.ts')
+        elif args["dataset"] == "atrialFibrillation":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/AtrialFibrillation/AtrialFibrillation_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/AtrialFibrillation/AtrialFibrillation_TEST.ts')
+        elif args["dataset"] == "fingerMovements":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/FingerMovements/FingerMovements_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/FingerMovements/FingerMovements_TEST.ts')
+        elif args["dataset"] == "handMovementDirection":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/HandMovementDirection/HandMovementDirection_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/HandMovementDirection/HandMovementDirection_TEST.ts')
+        elif args["dataset"] == "natops":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/NATOPS/NATOPS_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/NATOPS/NATOPS_TEST.ts')
+        elif args["dataset"] == "penDigits":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/PenDigits/PenDigits_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/PenDigits/PenDigits_TEST.ts')
+        elif args["dataset"] == "selfRegulationSCP2":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/SelfRegulationSCP2/SelfRegulationSCP2_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/SelfRegulationSCP2/SelfRegulationSCP2_TEST.ts')
+        elif args["dataset"] == "motorImagery":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/MotorImagery/MotorImagery_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/MotorImagery/MotorImagery_TEST.ts')
+        elif args["dataset"] == "heartbeat":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/Heartbeat/Heartbeat_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/Heartbeat/Heartbeat_TEST.ts')
+
         N, D = X_train.shape
         N_te = X_test.shape[0]
         T = np.array(X_train.to_numpy()[0][0]).shape[0]
@@ -208,19 +234,27 @@ if __name__ == "__main__":
 
     N_te = x_test.shape[0]
 
+    start = timer()
+# ...
+
+
     D = np.zeros([N, N])
     for i in range(N):
+        # print(i)
         for j in range(N):
             D[i][j] = perSerieDistance(x_train[i], x_train[j])
 
     D_te = np.zeros([N_te, N])
     for i in range(N_te):
+        # print(i)
         for j in range(N):
             D_te[i][j] = perSerieDistance(x_test[i], x_train[j])
 
+    end = timer()
+    print(f"Elapsed time in seconds: {end - start} seconds") 
     # print(D)
 
-    readout = SVC(C=1, kernel='precomputed')
+    readout = SVC(C=10, kernel='precomputed')
     svm_gamma = 1
     # Ktr = squareform(pdist(repr_tr, metric='sqeuclidean')) 
     Ktr = D
@@ -261,9 +295,10 @@ if __name__ == "__main__":
     # clusters = y_train_int
     
     plt.scatter(
-        coords[:, 0], coords[:, 1], marker = 'o', cmap=cmap, c =clusters, s=15
+        coords[:, 0], coords[:, 1], marker = 'o', cmap=cmap, c =clusters, s=30
     )
-    plt.savefig('images/' + args['dataset'] + '_' + 'mds' + '.png')
+    plt.axis('off')
+    plt.savefig('images/' + args['dataset'] + '_' + 'mds' + '.png', bbox_inches='tight')
     plt.show()
 
 

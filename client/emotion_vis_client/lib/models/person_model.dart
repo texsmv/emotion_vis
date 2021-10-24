@@ -88,4 +88,15 @@ class PersonModel {
     numericalValues = queryMap[id]['numericalFeatures'].cast<double>();
     numericalLabels = queryMap[id]['numericalLabels'].cast<String>();
   }
+
+  List<dynamic> toList() {
+    List<dynamic> mts = [];
+    final List<String> variables =
+        Get.find<SeriesController>().datasetSettings.variablesNames;
+    for (var i = 0; i < variables.length; i++) {
+      mts.add(mtSerie.getSerie(variables[i]).values);
+    }
+
+    return mts;
+  }
 }

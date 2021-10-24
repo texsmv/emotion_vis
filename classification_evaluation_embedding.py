@@ -2,10 +2,12 @@ import sys
 import numpy as np
 import argparse
 
+from timeit import default_timer as timer
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.decomposition import KernelPCA
 from sktime.classification.compose import ColumnEnsembleClassifier
 from sktime.classification.dictionary_based import BOSSEnsemble
 from sktime.classification.interval_based import TimeSeriesForestClassifier
@@ -20,20 +22,34 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn import preprocessing
 from sktime.utils.data_io import load_from_tsfile_to_dataframe
 from sklearn.decomposition import PCA
+from sklearn.neural_network import MLPClassifier
 
-import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from keras.models import Sequential
-from keras.layers import LSTM
-from keras.layers import Dense
-from keras.layers import RepeatVector
-from keras.layers import TimeDistributed
-from keras import Model
-from keras import backend as K
 
-from multidr.tdr import TDR
-from multidr.cl import CL
+# from rc_next_gen import NextGenAE
+from esn_ae import EsnAe
+from esn_ae_v2 import EsnAe2
+
+# import tensorflow as tf
+# from keras.models import Sequential
+# from keras.layers import LSTM
+# from keras.layers import Dense
+# from keras.layers import RepeatVector
+# from keras.layers import TimeDistributed
+# from keras.optimizers import SGD
+# from keras import Model
+# from keras import backend as K
+
+# from multidr.tdr import TDR
+# from multidr.cl import CL
+
+# config = tf.ConfigProto()
+# config.gpu_options.per_process_gpu_memory_fraction = 0.95
+# config.gpu_options.allow_growth = True
+# tf.keras.backend.set_session(tf.Session(config=config));
+# eps = np.float(K.epsilon())
+
 from sklearn.decomposition import PCA
 from umap import UMAP
 
@@ -41,22 +57,31 @@ from umap import UMAP
 
 
 
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.9
-config.gpu_options.allow_growth = True
-tf.keras.backend.set_session(tf.Session(config=config));
+np.random.seed(2021)
 
-
-
-np.random.seed(0)
 # sys.path.insert(1, '/home/texs/Documents/Kusisqa/emotion_vis_server')
 sys.path.insert(1, '/home/texs/Documents/AirQuality/repositories/peax/experiments')
 sys.path.insert(1, '/home/texs/Documents/Kusisqa/repositories/Time-series-classification-and-clustering-with-Reservoir-Computing/code')
 
 from modules import RC_model
 
-from air_quality import trainAutoencoder
+# from air_quality import trainAutoencoder
 
+esn_ca_config = {}
+esn_ca_config['n_internal_units'] = 100
+esn_ca_config['W_out_mode'] = False
+esn_ca_config['pca_dim'] = None
+esn_ca_config['bidir'] = True
+esn_ca_config['n_epoch'] = 500
+esn_ca_config['embedding'] = 50
+
+esn_ca_config2 = {}
+esn_ca_config2['n_internal_units'] = 100
+esn_ca_config2['W_out_mode'] = False
+esn_ca_config2['pca_dim'] = None
+esn_ca_config2['bidir'] = True
+esn_ca_config2['n_epoch'] = 100
+esn_ca_config2['embedding'] = 50
 
 rc_config = {}
 
@@ -64,12 +89,12 @@ rc_config = {}
 rc_config['n_internal_units_m'] = 20
 rc_config['n_dim_m'] = 10
 rc_config['n_internal_units'] = 20        # size of the reservoir
-rc_config['spectral_radius'] = 0.59        # largest eigenvalue of the reservoir
+rc_config['spectral_radius'] = 0.9        # largest eigenvalue of the reservoir
 rc_config['leak'] = 0.6                    # amount of leakage in the reservoir state update (None or 1.0 --> no leakage)
 rc_config['connectivity'] = 0.35           # percentage of nonzero connections in the reservoir
 rc_config['input_scaling'] = 0.1           # scaling of the input weights
 rc_config['noise_level'] = 0.01            # noise in the reservoir state update
-rc_config['n_drop'] = 5                    # transient states to be dropped
+rc_config['n_drop'] = 0                    # transient states to be dropped
 rc_config['bidir'] = True                  # if True, use bidirectional reservoir
 rc_config['circ'] = False                  # use reservoir with circle topology
 
@@ -139,7 +164,6 @@ cnn_settings = {
   "crop_end": False,
 }
 
-eps = np.float(K.epsilon())
 
 def scaleSerie(data, scaler = None):
     if(scaler == None):
@@ -163,6 +187,7 @@ def binary_crossentropy_numpy(y_true, y_pred):
 
 
 def lstmModel(timesteps, n_features):
+    opt = SGD(lr=0.01, momentum=0.9, clipvalue=0.5)
     model = Sequential()
     model.add(LSTM(128, activation='relu', input_shape=(timesteps,n_features), return_sequences=True))
     model.add(LSTM(lstm_embedding, activation='relu', return_sequences=False))
@@ -172,7 +197,7 @@ def lstmModel(timesteps, n_features):
     model.add(TimeDistributed(Dense(n_features, activation='sigmoid')))
     # model.compile(optimizer='adam', loss='mse')
     # model.compile(optimizer='adam', loss='binary_crossentropy')
-    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.compile(optimizer=opt, loss='binary_crossentropy')
     
     
     # model.summary()
@@ -229,6 +254,132 @@ def get_embeddings(
         input_repr_tr = rcm.train(x_train, y_train)
         accuracy, f1, input_repr_te = rcm.test(x_test, y_test)
         return input_repr_tr, input_repr_te
+    
+    if(algorithm == "fe-esn"):
+        n_internal_units=esn_ca_config['n_internal_units']
+        spectral_radius=0.9
+        leak=None
+        connectivity=0.35
+        input_scaling=0.1
+        noise_level=0.01
+        circle=False
+        input_weights = True
+
+        ae = EsnAe(
+            n_internal_units=n_internal_units,
+            spectral_radius=spectral_radius,
+            leak=leak,
+            connectivity=connectivity,
+            input_scaling=input_scaling,
+            noise_level=noise_level,
+            circle=circle,
+            n_drop=0, 
+            bidir=True,
+            pca_n_dim = None,
+            n_epochs = esn_ca_config['n_epoch'],
+            w_out_mode = True,
+            embedding_size = esn_ca_config['embedding']
+        )
+        input_repr_tr = ae.train(x_train)
+        input_repr_te = ae.test(x_test)
+        return input_repr_tr, input_repr_te
+
+    if(algorithm == "esn-ae"):
+        n_internal_units=esn_ca_config['n_internal_units']
+        spectral_radius=0.9
+        leak=None
+        connectivity=0.35
+        input_scaling=0.1
+        noise_level=0.01
+        circle=False
+        input_weights = True
+
+        ae = EsnAe(
+            n_internal_units=n_internal_units,
+            spectral_radius=spectral_radius,
+            leak=leak,
+            connectivity=connectivity,
+            input_scaling=input_scaling,
+            noise_level=noise_level,
+            circle=circle,
+            n_drop=0, 
+            bidir=False,
+            pca_n_dim = None,
+            n_epochs = esn_ca_config['n_epoch'],
+            w_out_mode=False,
+            embedding_size= esn_ca_config['embedding']
+        )
+        input_repr_tr = ae.train(x_train)
+        input_repr_te = ae.test(x_test)
+        return input_repr_tr, input_repr_te
+    
+    if(algorithm == "besn-ae"):
+        n_internal_units=esn_ca_config['n_internal_units']
+        spectral_radius=0.9
+        leak=None
+        connectivity=0.35
+        input_scaling=0.1
+        noise_level=0.01
+        circle=False
+        input_weights = True
+
+        ae = EsnAe2(
+            n_internal_units=n_internal_units,
+            spectral_radius=spectral_radius,
+            leak=leak,
+            connectivity=connectivity,
+            input_scaling=input_scaling,
+            noise_level=noise_level,
+            circle=circle,
+            n_drop=0, 
+            bidir=False,
+            pca_n_dim = esn_ca_config['pca_dim'],
+            n_epochs = esn_ca_config['n_epoch'],
+            w_out_mode=False,
+            embedding_size= esn_ca_config['embedding']
+        )
+        input_repr_tr = ae.train(x_train)
+        input_repr_te = ae.test(x_test)
+        return input_repr_tr, input_repr_te
+    
+    if(algorithm == "esn-ae2"):
+        n_internal_units=esn_ca_config2['n_internal_units']
+        spectral_radius=0.9
+        leak=None
+        connectivity=0.35
+        input_scaling=0.1
+        noise_level=0.01
+        circle=False
+        input_weights = True
+
+        ae = EsnAe2(
+            n_internal_units=n_internal_units,
+            spectral_radius=spectral_radius,
+            leak=leak,
+            connectivity=connectivity,
+            input_scaling=input_scaling,
+            noise_level=noise_level,
+            circle=circle,
+            n_drop=0, 
+            bidir=esn_ca_config2['bidir'],
+            pca_n_dim = esn_ca_config2['pca_dim'],
+            n_epochs = esn_ca_config2['n_epoch'],
+            w_out_mode=esn_ca_config2['W_out_mode'],
+            embedding_size= esn_ca_config2['embedding']
+        )
+        input_repr_tr = ae.train(x_train)
+        input_repr_te = ae.test(x_test)
+        return input_repr_tr, input_repr_te
+    
+    if(algorithm == "rc-ng"):
+        ae = NextGenAE(
+            w_out_mode= False,
+            n_epochs = 500,
+        )
+        input_repr_tr = ae.train(x_train, test = False)
+        input_repr_te = ae.train(x_test, test=True)
+        return input_repr_tr, input_repr_te
+
 
     if(algorithm == "rc2"):
         N, T, D = x_train.shape
@@ -315,13 +466,15 @@ def get_embeddings(
         y_tn = y_tn_d.reshape((T, N_te))
         y_nd = y_nd_t.reshape((N_te, D))
 
-        return train_tn.transpose(), y_tn.transpose()
+        # return train_tn.transpose(), y_tn.transpose()
         return train_nd, y_nd
     if(algorithm == "cnn"):
         N, T, D = x_train.shape
         encodings_tr = []
         encodings_te = []
         for i in range(D):
+            print("Dimension")
+            print(i)
             train = np.expand_dims(x_train[:,:,i], axis=2)
             test = np.expand_dims(x_test[:,:,i], axis=2)
             encoder, decoder, autoencoder, history = trainAutoencoder(
@@ -338,6 +491,7 @@ def get_embeddings(
             # print(encoder.predict(train).shape)
             encodings_tr += [encoder.predict(train)]
             encodings_te += [encoder.predict(test)]
+            K.clear_session()
             # print(encoding_i_tr.shape)
         encodings_tr = np.concatenate(np.array(encodings_tr), axis=1)
         encodings_te = np.concatenate(np.array(encodings_te), axis=1)
@@ -433,13 +587,29 @@ if __name__ == "__main__":
             rc_config['n_dim_m'] = 10
             rc_config['n_internal_units_m'] = 55
 
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 800
+            esn_ca_config['embedding'] = 100
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = False
+            # esn_ca_config['n_epoch'] = 3500
+            esn_ca_config['embedding'] = 100
+            # esn_ca_config['embedding'] = 10
+
+
             cnn_settings['crop_end'] = True
             cnn_settings['embedding'] = 5
             cnn_n_epochs = 150
             cnn_batch_size = 50
 
-            lstm_embedding = 30
-            lstm_n_epochs = 500
+            lstm_embedding = 20
+            lstm_n_epochs = 3000
             lstm_batch_size = 100
         elif args["dataset"] == "uwave":
             X_train, y_train = load_from_tsfile_to_dataframe('datasets/UWaveGestureLibraryAll/UWaveGestureLibraryAll_TRAIN.ts')
@@ -467,13 +637,29 @@ if __name__ == "__main__":
             rc_config['n_dim_m'] = 30
             rc_config['n_internal_units_m'] = 200
 
+            esn_ca_config['n_internal_units'] = 200
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 400
+            esn_ca_config['embedding'] = 50
+
+            esn_ca_config['n_internal_units'] = 400
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = False
+            # esn_ca_config['n_epoch'] = 3000
+            esn_ca_config['embedding'] = 50
+
+
+
             cnn_settings['embedding'] = 10
             cnn_n_epochs = 5
             cnn_batch_size = 2
 
             lstm_embedding = 64
-            lstm_n_epochs = 50
-            lstm_batch_size = 100
+            lstm_n_epochs = 200
+            lstm_batch_size = 30
         elif args["dataset"] == "handwritting":
             X_train, y_train = load_from_tsfile_to_dataframe('datasets/Handwriting/Handwriting_TRAIN.ts')
             X_test, y_test = load_from_tsfile_to_dataframe('datasets/Handwriting/Handwriting_TEST.ts')
@@ -491,6 +677,258 @@ if __name__ == "__main__":
             lstm_embedding = 25
             lstm_n_epochs = 100
             lstm_batch_size = 15
+        
+        elif args["dataset"] == "atrialFibrillation":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/AtrialFibrillation/AtrialFibrillation_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/AtrialFibrillation/AtrialFibrillation_TEST.ts')
+
+            
+            rc_config['n_dim'] = 25
+            rc_config['n_internal_units'] = 100
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 1500
+            esn_ca_config['embedding'] = 100
+
+            esn_ca_config['n_internal_units'] = 200
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = False
+            esn_ca_config['n_epoch'] = 4000
+            esn_ca_config['embedding'] = 100
+
+            cnn_settings['embedding'] = 100
+            cnn_n_epochs = 500
+            cnn_batch_size = 50
+
+            lstm_embedding = 100
+            lstm_n_epochs = 100
+            lstm_batch_size = 100
+        
+        elif args["dataset"] == "fingerMovements":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/FingerMovements/FingerMovements_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/FingerMovements/FingerMovements_TEST.ts')
+
+            
+            rc_config['n_dim'] = 40
+            rc_config['n_internal_units'] = 50
+            rc_config['n_dim_m'] = 20
+            rc_config['n_internal_units_m'] = 50
+
+            esn_ca_config['n_internal_units'] = 50
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 1000
+            esn_ca_config['embedding'] = 100
+
+            esn_ca_config['n_internal_units'] = 200
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = False
+            # esn_ca_config['n_epoch'] = 2000
+            esn_ca_config['embedding'] = 100
+
+            cnn_settings['embedding'] = 25
+            cnn_n_epochs = 200
+            cnn_batch_size = 200
+
+            lstm_embedding = 100
+            lstm_n_epochs = 300
+            lstm_batch_size = 50
+        
+        elif args["dataset"] == "handMovementDirection":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/HandMovementDirection/HandMovementDirection_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/HandMovementDirection/HandMovementDirection_TEST.ts')
+            
+            rc_config['n_dim'] = 50
+            rc_config['n_internal_units'] = 400
+            rc_config['n_dim_m'] = 20
+            rc_config['n_internal_units_m'] = 50
+
+            esn_ca_config['n_internal_units'] = 400
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 1200
+            esn_ca_config['embedding'] = 200
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = False
+            # esn_ca_config['n_epoch'] = 4000
+            esn_ca_config['embedding'] = 100
+
+            cnn_settings['embedding'] = 25
+            cnn_n_epochs = 100
+            cnn_batch_size = 50
+
+            lstm_embedding = 250
+            lstm_n_epochs = 50
+            lstm_batch_size = 50
+        
+        elif args["dataset"] == "natops":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/NATOPS/NATOPS_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/NATOPS/NATOPS_TEST.ts')
+            
+            rc_config['n_dim'] = 50
+            rc_config['n_internal_units'] = 100
+            rc_config['n_dim_m'] = 20
+            rc_config['n_internal_units_m'] = 50
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 1500
+            esn_ca_config['embedding'] = 200
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = False
+            # esn_ca_config['n_epoch'] = 3000
+            esn_ca_config['embedding'] = 100
+
+            cnn_settings['embedding'] = 10
+            cnn_n_epochs = 50
+            cnn_batch_size = 100
+
+            lstm_embedding = 50
+            lstm_n_epochs = 2000
+            lstm_batch_size = 50
+        
+        elif args["dataset"] == "penDigits":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/PenDigits/PenDigits_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/PenDigits/PenDigits_TEST.ts')
+            
+            rc_config['n_dim'] = 20
+            rc_config['n_internal_units'] = 20
+            rc_config['n_dim_m'] = 20
+            rc_config['n_internal_units_m'] = 50
+
+            esn_ca_config['n_internal_units'] = 20
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 90
+            esn_ca_config['embedding'] = 25
+
+            esn_ca_config['n_internal_units'] = 20
+            esn_ca_config['W_out_mode'] =False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 101
+            esn_ca_config['embedding'] = 25
+            # esn_ca_config['embedding'] = 10
+
+            cnn_settings['embedding'] = 10
+            cnn_n_epochs = 50
+            cnn_batch_size = 300
+
+            lstm_embedding = 4
+            lstm_n_epochs = 200
+            lstm_batch_size = 50
+            
+        elif args["dataset"] == "selfRegulationSCP2":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/SelfRegulationSCP2/SelfRegulationSCP2_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/SelfRegulationSCP2/SelfRegulationSCP2_TEST.ts')
+            
+            rc_config['n_dim'] = 100
+            rc_config['n_internal_units'] = 50
+            rc_config['n_dim_m'] = 20
+            rc_config['n_internal_units_m'] = 50
+
+            esn_ca_config['n_internal_units'] = 50
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 401
+            esn_ca_config['embedding'] = 50
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = False
+            # esn_ca_config['n_epoch'] = 1000
+            esn_ca_config['embedding'] = 50
+
+            cnn_settings['embedding'] = 25
+            cnn_n_epochs = 100
+            cnn_batch_size = 300
+
+            lstm_embedding = 100
+            lstm_n_epochs = 200
+            lstm_batch_size = 25
+        
+        elif args["dataset"] == "motorImagery":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/MotorImagery/MotorImagery_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/MotorImagery/MotorImagery_TEST.ts')
+            
+            rc_config['n_dim'] = 50
+            rc_config['n_internal_units'] = 100
+            rc_config['n_dim_m'] = 20
+            rc_config['n_internal_units_m'] = 50
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 200
+            esn_ca_config['embedding'] = 100
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = False
+            esn_ca_config['n_epoch'] = 200
+            esn_ca_config['embedding'] = 100
+
+            cnn_settings['embedding'] = 10
+            cnn_n_epochs = 10
+            cnn_batch_size = 1
+
+            lstm_embedding = 100
+            lstm_n_epochs = 50
+            lstm_batch_size = 100
+        elif args["dataset"] == "heartbeat":
+            X_train, y_train = load_from_tsfile_to_dataframe('datasets/Heartbeat/Heartbeat_TRAIN.ts')
+            X_test, y_test = load_from_tsfile_to_dataframe('datasets/Heartbeat/Heartbeat_TEST.ts')
+            
+            rc_config['n_dim'] = 50
+            rc_config['n_internal_units'] = 100
+            rc_config['n_dim_m'] = 20
+            rc_config['n_internal_units_m'] = 50
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = True
+            esn_ca_config['n_epoch'] = 400
+            esn_ca_config['embedding'] = 50
+
+            esn_ca_config['n_internal_units'] = 100
+            esn_ca_config['W_out_mode'] = False
+            esn_ca_config['pca_dim'] = None
+            esn_ca_config['bidir'] = False
+            # esn_ca_config['n_epoch'] = 1000
+            esn_ca_config['n_epoch'] = 400
+            esn_ca_config['embedding'] = 50
+
+            cnn_settings['embedding'] = 10
+            cnn_n_epochs = 10
+            cnn_batch_size = 300
+
+            lstm_embedding = 100
+            lstm_n_epochs = 200
+            lstm_batch_size = 100
+
+
+
 
 
         N, D = X_train.shape
@@ -547,27 +985,54 @@ if __name__ == "__main__":
         print("ERROR MAX")
         raise AssertionError()
 
+    start = timer()
+
     repr_tr, repr_te = get_embeddings(algorithm=args["alg"], x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test)
 
+    end = timer()
+    print(f"Elapsed time in seconds: {end - start} seconds") 
+
     print(f"Train shape: {repr_tr.shape} - Test shape: {repr_te.shape}")
+    
+    # readout = SVC(C=5, kernel='precomputed')
+    readout = MLPClassifier(
+        hidden_layer_sizes=(20,len(labels)), 
+        activation='tanh', 
+        alpha=0.001,
+        batch_size=32, 
+        learning_rate='adaptive', # 'constant' or 'adaptive'
+        learning_rate_init=0.001, 
+        max_iter=5000, 
+        early_stopping=False, # if True, set validation_fraction > 0
+        validation_fraction=0.0 # used for early stopping
+    )
 
-    readout = SVC(C=1, kernel='precomputed')
-    svm_gamma = 1.0
-    Ktr = squareform(pdist(repr_tr, metric='sqeuclidean')) 
-    Ktr = np.exp(-svm_gamma*Ktr)
-    readout.fit(Ktr, np.argmax(y_train,axis=1))
+    # svm_gamma = 1.0
+    # Ktr = squareform(pdist(repr_tr, metric='sqeuclidean')) 
+    # Ktr = np.exp(-svm_gamma*Ktr)
+    # readout.fit(Ktr, np.argmax(y_train,axis=1))
+    readout.fit(repr_tr, y_train)
 
 
-    Kte = cdist(repr_te, repr_tr, metric='sqeuclidean')
-    Kte = np.exp(-svm_gamma*Kte)
-    pred_class = readout.predict(Kte)
+    # Kte = cdist(repr_te, repr_tr, metric='sqeuclidean')
+    # Kte = np.exp(-svm_gamma*Kte)
+    # pred_class = readout.predict(Kte)
+    pred_class = readout.predict(repr_te)
+    pred_class = np.argmax(pred_class, axis=1)
 
     accuracy, recall, f1 = compute_test_scores(pred_class, y_test)
-    print('Accuracy = %.3f, F1 = %.3f'%(accuracy, f1))
+    # print('Accuracy = %.3f, F1 = %.3f'%(accuracy, f1))
+    print('-----Accuracy = %.3f'%(accuracy))
     print(f'Labels: {len(labels)}')
 
     reducer = UMAP()
     coords = reducer.fit_transform(np.concatenate([repr_tr, repr_te]))
+
+    # mts_representations = np.concatenate([repr_tr, repr_te])
+    # similarity_matrix = cosine_similarity(mts_representations)
+    # similarity_matrix = (similarity_matrix + 1.0)/2.0
+    # kpca = KernelPCA(n_components=2, kernel='precomputed')
+    # coords = kpca.fit_transform(similarity_matrix)
 
     cmap = plt.cm.jet
     # extract all colors from the .jet map
@@ -580,10 +1045,11 @@ if __name__ == "__main__":
     plt.scatter(
         coords[:, 0], coords[:, 1], marker = 'o', cmap=cmap, c =clusters, s=15
     )
+    plt.axis('off')
     # plt.savefig('images/' + args['dataset'] + '_' +  args['alg'] + '.png')
 
-    # plt.savefig('images/' + args['dataset'] + '_' +  'multidr_nd' + '.png')
-    # plt.savefig('images/' + args['dataset'] + '_' +  'multidr_nt' + '.png')
+    # plt.savefig('images/' + args['dataset'] + '_' +  'multidr_nd' + '.png', bbox_inches='tight')
+    # plt.savefig('images/' + args['dataset'] + '_' +  'multidr_nt' + '.png', bbox_inches='tight')
     plt.show()
 
 

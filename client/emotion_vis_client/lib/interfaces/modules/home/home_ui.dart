@@ -237,153 +237,153 @@ class HomeUi extends GetView<HomeUiController> {
     final List<Widget> options = [];
 
     // * Adding projection algorithm selection
-    final List<int> projections = [0, 1, 2, 3];
-    options.add(
-      Obx(
-        () => LoadingContainer(
-          isLoading: controller.datasetSettings.updating,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                child: Text(
-                  "Dimensionality reduction:".toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                separatorBuilder: (context, index) => const SizedBox(height: 5),
-                itemCount: projections.length,
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {
-                      controller.changeProjection(projections[index]);
-                      controller.update();
-                    },
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: controller.datasetSettings.projection ==
-                                    projections[index]
-                                ? pColorAccent.withOpacity(0.7)
-                                : const Color.fromARGB(0, 240, 240, 240),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            uiUtilProjectionToStr(
-                              projections[index],
-                            ),
-                            textAlign: TextAlign.start,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: controller.datasetSettings.projection ==
-                                      projections[index]
-                                  ? Colors.white
-                                  : Colors.black,
-                            ),
-                          ),
-                        ),
-                        if (projections[index] != 0)
-                          AnimatedContainer(
-                            color: Colors.white.withOpacity(0.6),
-                            duration: const Duration(milliseconds: 300),
-                            height: controller.datasetSettings.projection ==
-                                    projections[index]
-                                ? 85
-                                : 0,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 10),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    child: Text(
-                                      "${uiUtilProjectionParamStr(
-                                        projections[index],
-                                      )}:",
-                                    ),
-                                  ),
-                                  FlutterSlider(
-                                    handlerHeight: 25,
-                                    handlerWidth: 25,
-                                    handler: FlutterSliderHandler(
-                                      child: Container(),
-                                    ),
-                                    hatchMark: FlutterSliderHatchMark(
-                                      labelsDistanceFromTrackBar: 33,
+    // final List<int> projections = [0, 1, 2, 3];
+    // options.add(
+    //   Obx(
+    //     () => LoadingContainer(
+    //       isLoading: controller.datasetSettings.updating,
+    //       child: Column(
+    //         crossAxisAlignment: CrossAxisAlignment.start,
+    //         children: [
+    //           Padding(
+    //             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+    //             child: Text(
+    //               "Dimensionality reduction:".toUpperCase(),
+    //               style: TextStyle(
+    //                 fontWeight: FontWeight.w600,
+    //                 fontSize: 15,
+    //               ),
+    //               textAlign: TextAlign.center,
+    //             ),
+    //           ),
+    //           ListView.separated(
+    //             physics: const NeverScrollableScrollPhysics(),
+    //             separatorBuilder: (context, index) => const SizedBox(height: 5),
+    //             itemCount: projections.length,
+    //             shrinkWrap: true,
+    //             itemBuilder: (context, index) {
+    //               return InkWell(
+    //                 onTap: () {
+    //                   controller.changeProjection(projections[index]);
+    //                   controller.update();
+    //                 },
+    //                 child: Column(
+    //                   children: [
+    //                     Container(
+    //                       height: 40,
+    //                       decoration: BoxDecoration(
+    //                         color: controller.datasetSettings.projection ==
+    //                                 projections[index]
+    //                             ? pColorAccent.withOpacity(0.7)
+    //                             : const Color.fromARGB(0, 240, 240, 240),
+    //                       ),
+    //                       alignment: Alignment.centerLeft,
+    //                       padding: const EdgeInsets.symmetric(horizontal: 10),
+    //                       child: Text(
+    //                         uiUtilProjectionToStr(
+    //                           projections[index],
+    //                         ),
+    //                         textAlign: TextAlign.start,
+    //                         overflow: TextOverflow.ellipsis,
+    //                         style: TextStyle(
+    //                           color: controller.datasetSettings.projection ==
+    //                                   projections[index]
+    //                               ? Colors.white
+    //                               : Colors.black,
+    //                         ),
+    //                       ),
+    //                     ),
+    //                     if (projections[index] != 0)
+    //                       AnimatedContainer(
+    //                         color: Colors.white.withOpacity(0.6),
+    //                         duration: const Duration(milliseconds: 300),
+    //                         height: controller.datasetSettings.projection ==
+    //                                 projections[index]
+    //                             ? 85
+    //                             : 0,
+    //                         child: SingleChildScrollView(
+    //                           child: Column(
+    //                             crossAxisAlignment: CrossAxisAlignment.start,
+    //                             children: [
+    //                               const SizedBox(height: 10),
+    //                               Padding(
+    //                                 padding: const EdgeInsets.symmetric(
+    //                                     horizontal: 10),
+    //                                 child: Text(
+    //                                   "${uiUtilProjectionParamStr(
+    //                                     projections[index],
+    //                                   )}:",
+    //                                 ),
+    //                               ),
+    //                               FlutterSlider(
+    //                                 handlerHeight: 25,
+    //                                 handlerWidth: 25,
+    //                                 handler: FlutterSliderHandler(
+    //                                   child: Container(),
+    //                                 ),
+    //                                 hatchMark: FlutterSliderHatchMark(
+    //                                   labelsDistanceFromTrackBar: 33,
 
-                                      density: 2,
-                                      //     0.5, // means 50 lines, from 0 to 100 percent
-                                      labels: [
-                                        FlutterSliderHatchMarkLabel(
-                                          percent: 0,
-                                          label: Text(
-                                            uiUtilProjectionParamRange(
-                                                    projections[index])
-                                                .item1
-                                                .toString(),
-                                          ),
-                                        ),
-                                        FlutterSliderHatchMarkLabel(
-                                          percent: 100,
-                                          label: Text(
-                                              uiUtilProjectionParamRange(
-                                                      projections[index])
-                                                  .item2
-                                                  .toString()),
-                                        ),
-                                      ],
-                                    ),
-                                    values: [
-                                      controller.datasetSettings
-                                          .getProjectionParameter(
-                                              projections[index])
-                                          .toDouble()
-                                    ],
-                                    min: uiUtilProjectionParamRange(
-                                            projections[index])
-                                        .item1
-                                        .toDouble(),
-                                    max: uiUtilProjectionParamRange(
-                                            projections[index])
-                                        .item2
-                                        .toDouble(),
-                                    onDragCompleted: (handlerIndex, lowerValue,
-                                        upperValuealue) {
-                                      controller.changeProjectionParameter(
-                                        lowerValue.toInt(),
-                                      );
-                                      controller.update();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else
-                          Container(),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    //                                   density: 2,
+    //                                   //     0.5, // means 50 lines, from 0 to 100 percent
+    //                                   labels: [
+    //                                     FlutterSliderHatchMarkLabel(
+    //                                       percent: 0,
+    //                                       label: Text(
+    //                                         uiUtilProjectionParamRange(
+    //                                                 projections[index])
+    //                                             .item1
+    //                                             .toString(),
+    //                                       ),
+    //                                     ),
+    //                                     FlutterSliderHatchMarkLabel(
+    //                                       percent: 100,
+    //                                       label: Text(
+    //                                           uiUtilProjectionParamRange(
+    //                                                   projections[index])
+    //                                               .item2
+    //                                               .toString()),
+    //                                     ),
+    //                                   ],
+    //                                 ),
+    //                                 values: [
+    //                                   controller.datasetSettings
+    //                                       .getProjectionParameter(
+    //                                           projections[index])
+    //                                       .toDouble()
+    //                                 ],
+    //                                 min: uiUtilProjectionParamRange(
+    //                                         projections[index])
+    //                                     .item1
+    //                                     .toDouble(),
+    //                                 max: uiUtilProjectionParamRange(
+    //                                         projections[index])
+    //                                     .item2
+    //                                     .toDouble(),
+    //                                 onDragCompleted: (handlerIndex, lowerValue,
+    //                                     upperValuealue) {
+    //                                   controller.changeProjectionParameter(
+    //                                     lowerValue.toInt(),
+    //                                   );
+    //                                   controller.update();
+    //                                 },
+    //                               ),
+    //                             ],
+    //                           ),
+    //                         ),
+    //                       )
+    //                     else
+    //                       Container(),
+    //                   ],
+    //                 ),
+    //               );
+    //             },
+    //           ),
+    //         ],
+    //       ),
+    //     ),
+    //   ),
+    // );
 
     // * Adding projection algorithm selection
     final List<ClusteringMethod> clusteringMethods =
@@ -666,68 +666,68 @@ class HomeUi extends GetView<HomeUiController> {
     );
 
     // * Adding distance selection
-    final List<int> distances = [0, 1];
-    options.add(
-      Obx(
-        () => LoadingContainer(
-          isLoading: controller.datasetSettings.updating,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                child: Text(
-                  "Distance:".toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                separatorBuilder: (context, index) => const SizedBox(height: 5),
-                itemCount: distances.length,
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {
-                      controller.changeDistance(distances[index]);
-                      controller.update();
-                    },
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: controller.datasetSettings.distance ==
-                                distances[index]
-                            ? pColorAccent.withOpacity(0.7)
-                            : const Color.fromARGB(0, 240, 240, 240),
-                      ),
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Text(
-                        uiUtilDistanceToStr(
-                          distances[index],
-                        ),
-                        textAlign: TextAlign.start,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: controller.datasetSettings.distance ==
-                                  distances[index]
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    // final List<int> distances = [0, 1];
+    // options.add(
+    //   Obx(
+    //     () => LoadingContainer(
+    //       isLoading: controller.datasetSettings.updating,
+    //       child: Column(
+    //         crossAxisAlignment: CrossAxisAlignment.center,
+    //         children: [
+    //           Padding(
+    //             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+    //             child: Text(
+    //               "Distance:".toUpperCase(),
+    //               style: TextStyle(
+    //                 fontWeight: FontWeight.w600,
+    //                 fontSize: 15,
+    //               ),
+    //               textAlign: TextAlign.center,
+    //             ),
+    //           ),
+    //           ListView.separated(
+    //             physics: const NeverScrollableScrollPhysics(),
+    //             separatorBuilder: (context, index) => const SizedBox(height: 5),
+    //             itemCount: distances.length,
+    //             shrinkWrap: true,
+    //             itemBuilder: (context, index) {
+    //               return InkWell(
+    //                 onTap: () {
+    //                   controller.changeDistance(distances[index]);
+    //                   controller.update();
+    //                 },
+    //                 child: Container(
+    //                   height: 40,
+    //                   decoration: BoxDecoration(
+    //                     color: controller.datasetSettings.distance ==
+    //                             distances[index]
+    //                         ? pColorAccent.withOpacity(0.7)
+    //                         : const Color.fromARGB(0, 240, 240, 240),
+    //                   ),
+    //                   alignment: Alignment.centerLeft,
+    //                   padding: const EdgeInsets.symmetric(horizontal: 10),
+    //                   child: Text(
+    //                     uiUtilDistanceToStr(
+    //                       distances[index],
+    //                     ),
+    //                     textAlign: TextAlign.start,
+    //                     overflow: TextOverflow.ellipsis,
+    //                     style: TextStyle(
+    //                       color: controller.datasetSettings.distance ==
+    //                               distances[index]
+    //                           ? Colors.white
+    //                           : Colors.black,
+    //                     ),
+    //                   ),
+    //                 ),
+    //               );
+    //             },
+    //           ),
+    //         ],
+    //       ),
+    //     ),
+    //   ),
+    // );
 
     return options;
   }

@@ -125,6 +125,8 @@ Offset uiUtilPolarToCartesian(double angle, double r) {
 
 String uiUtilTemVis2Str(TemporalVisualization visualization) {
   switch (visualization) {
+    case TemporalVisualization.STREAM_GRAPH:
+      return "Stream graph";
     case TemporalVisualization.LINEAR_CHART:
       return "Linear chart";
     case TemporalVisualization.STACKED_CHART:
@@ -263,6 +265,9 @@ List<TemporalVisualization> uiUtilAvailableTemporalVisualizations(
   }
   if (type == ModelType.DISCRETE && numberOfDimensions >= 2) {
     visualizations.add(TemporalVisualization.TAGGED_TUNNEL);
+  }
+  if (numberOfDimensions >= 1) {
+    visualizations.add(TemporalVisualization.STREAM_GRAPH);
   }
   return visualizations;
 }

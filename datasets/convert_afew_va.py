@@ -22,7 +22,6 @@ dataset = MTSerieDataset()
 paths = getFiles(DATASET_PATH, allowedExtensions = (".json"))
 
 timeSerieSize = 34
-dataset = MTSerieDataset()
 
 videoLens = []
 for path in paths:

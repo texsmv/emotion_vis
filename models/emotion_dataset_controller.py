@@ -21,6 +21,7 @@ sys.path.insert(1, '/home/texs/Documents/Kusisqa/repositories/Time-series-classi
 sys.path.append("..")
 
 from modules import RC_model
+from esn_ae_v2 import EsnAe2
 
 
 INFO_MIN_VALUES = "globalEmotionMin"
@@ -54,7 +55,7 @@ def rangeConverter(oldValue, oldMin, oldMax,
 rc_config = {}
 
 # * Reservoir cnn_settings
-rc_config['n_internal_units'] = 100        # size of the reservoir
+rc_config['n_internal_units'] = 50        # size of the reservoir
 rc_config['spectral_radius'] = 0.59        # largest eigenvalue of the reservoir
 rc_config['leak'] = 0.6                    # amount of leakage in the reservoir state update (None or 1.0 --> no leakage)
 rc_config['connectivity'] = 0.35           # percentage of nonzero connections in the reservoir
@@ -68,7 +69,7 @@ rc_config['circ'] = False                  # use reservoir with circle topology
 rc_config['dimred_method'] ='tenpca'       # options: {None (no dimensionality reduction), 'pca', 'tenpca'}
 # rc_config['dimred_method'] = 'None'
 # rc_config['n_dim'] = 10                   # number of resulting dimensions after the dimensionality reduction procedure
-rc_config['n_dim'] = 20
+rc_config['n_dim'] = 10
 # MTS representation
 rc_config['mts_rep'] = 'reservoir'         # MTS representation:  {'last', 'mean', 'output', 'reservoir'}
 # rc_config['mts_rep'] = 'reservoir'
@@ -81,6 +82,13 @@ class AppController:
     def __init__(self):
         self.loadedDatasets = []
         self.localDatasetsIds = [
+            "motions",
+            "wafer",
+            "libras",
+            "uwave",
+            "stand",
+            "handwritting",
+            "AMIGOS_dimensional",
             "wesad",
             "case",
             "aff-wild-categorical",
@@ -90,28 +98,33 @@ class AppController:
             "drivers_stress",
             "emotions_in_music",
             "afew_va",
-            # "wesad_dimensional_3",
-            # "wesad_categorical_panas",
-            # "wesad_categorical_stai",
+            "wesad_dimensional_3",
+            "wesad_categorical_panas",
+            "wesad_categorical_stai",
             # "case_categorical",
         ]
         self.datasets = {}
         # this info is changed according to the proccesing make on the original data
         self.datasetsInfo = {}
+        self.mts_representations = {}
 
     def loadLocalDataset(self, datasetId):
         if datasetId in self.loadedDatasets:
             return False
+        
+        if datasetId == "wesad_dimensional_3":
+            path_info = wesad_path_info_dimensional_3
+            paths = wesad_paths
 
-        if datasetId == "wesad":
+        elif datasetId == "wesad":
             path_info = wesad_path_info_dimensional_2
             paths = wesad_paths
-        # elif datasetId == "wesad_categorical_panas":
-        #     path_info = wesad_path_info_categorical_panas
-        #     paths = wesad_paths
-        # elif datasetId == "wesad_categorical_stai":
-        #     path_info = wesad_path_info_categorical_stai
-        #     paths = wesad_paths
+        elif datasetId == "wesad_categorical_panas":
+            path_info = wesad_path_info_categorical_panas
+            paths = wesad_paths
+        elif datasetId == "wesad_categorical_stai":
+            path_info = wesad_path_info_categorical_stai
+            paths = wesad_paths
         # elif datasetId == "case_dimensional":
         #     path_info = case_path_info_dimensional
         #     paths = case_paths
@@ -139,6 +152,28 @@ class AppController:
         elif datasetId == "aff-wild-dimensional":
             path_info = aff_wild_dimensional_path_info
             paths = aff_wild_dimensional_paths
+        elif datasetId == "AMIGOS_dimensional":
+            path_info = amigos_dimensional_path_info
+            paths = amigos_dimensional_paths
+        
+        elif datasetId == "motions":
+            path_info = motions_path_info
+            paths = motions_paths
+        elif datasetId == "wafer":
+            path_info = wafer_path_info
+            paths = wafer_paths
+        elif datasetId == "libras":
+            path_info = libras_path_info
+            paths = libras_paths
+        elif datasetId == "uwave":
+            path_info = uwave_path_info
+            paths = uwave_paths
+        elif datasetId == "stand":
+            path_info = stand_path_info
+            paths = stand_paths
+        elif datasetId == "handwritting":
+            path_info = handwritting_path_info
+            paths = handwritting_paths
 
         with open('datasets/' + path_info, 'r') as file:
             dataInfoJson = file.read()
@@ -283,120 +318,95 @@ class AppController:
         datasetId,
         begin,
         end,
-        alphas,
         oldCoords=None,
-        D_k=None,
-        distanceType=DistanceType.EUCLIDEAN,
         projectionAlg: ProjectionAlg = ProjectionAlg.MDS,
         projectionParam: int = 5
     ):
-        rcm =  RC_model(
-            reservoir=None,     
-            n_internal_units=rc_config['n_internal_units'],
-            spectral_radius=rc_config['spectral_radius'],
-            leak=rc_config['leak'],
-            connectivity=rc_config['connectivity'],
-            input_scaling=rc_config['input_scaling'],
-            noise_level=rc_config['noise_level'],
-            circle=rc_config['circ'],
-            n_drop=rc_config['n_drop'],
-            bidir=rc_config['bidir'],
-            dimred_method=rc_config['dimred_method'], 
-            n_dim=rc_config['n_dim'],
-            mts_rep=rc_config['mts_rep'],
-            w_ridge_embedding=rc_config['w_ridge_embedding'],
-            readout_type=rc_config['readout_type'] 
-        )
+
+        n_internal_units = 100
+        spectral_radius=0.9
+        leak=None
+        connectivity=0.35
+        input_scaling=0.1
+        noise_level=0.01
+        circle=False
+        n_epochs = 2000
+        embedding_size = 100
+
         X = self.datasets[datasetId].values()
-        print("Shape")
-        print(X.shape)
-        rcm.train(X)
-        mts_representations = rcm.input_repr
+
+        X = X [:, begin:end,:]
+        N, T, D = X.shape
+
+        ae = EsnAe2(
+            n_internal_units=n_internal_units,
+            spectral_radius=spectral_radius,
+            leak=leak,
+            connectivity=connectivity,
+            input_scaling=input_scaling,
+            noise_level=noise_level,
+            circle=circle,
+            n_drop=0, 
+            bidir=False,
+            pca_n_dim = None,
+            n_epochs = n_epochs,
+            w_out_mode= False,
+            embedding_size= embedding_size
+        )
+
+        mts_representations = ae.train(X)
+
+        # mts_representations = []
+        # for i in range(D):  
+        #     train = np.expand_dims(X[:,:,i], axis=2)
+        #     rcm =  RC_model(
+        #         reservoir=None,     
+        #         n_internal_units=rc_config['n_internal_units'],
+        #         spectral_radius=rc_config['spectral_radius'],
+        #         leak=rc_config['leak'],
+        #         connectivity=rc_config['connectivity'],
+        #         input_scaling=rc_config['input_scaling'],
+        #         noise_level=rc_config['noise_level'],
+        #         circle=rc_config['circ'],
+        #         n_drop=rc_config['n_drop'],
+        #         bidir=rc_config['bidir'],
+        #         dimred_method=rc_config['dimred_method'], 
+        #         n_dim=rc_config['n_dim'],
+        #         mts_rep=rc_config['mts_rep'],
+        #         w_ridge_embedding=rc_config['w_ridge_embedding'],
+        #         readout_type=rc_config['readout_type'] 
+        #     )
+        #     rcm.train(train)
+        #     ts_representations = rcm.input_repr
+        #     mts_representations += [ts_representations]
+        
+        # mts_representations = np.concatenate(np.array(mts_representations), axis=1)
+
 
         similarity_matrix = cosine_similarity(mts_representations)
         similarity_matrix = (similarity_matrix + 1.0)/2.0
-        print(similarity_matrix.shape)
 
         D = similarity_matrix
 
-        reducer = umap.UMAP()
+        reducer = umap.UMAP(n_neighbors=projectionParam)
         coords = reducer.fit_transform(mts_representations)
 
         coords = scale_layout(coords)
-        # return coords as dict
+
+        # * return coords as dict
         coordsDict = {}
         ids = self.datasets[datasetId].ids
         for i in range(len(ids)):
             id = ids[i]
             coordsDict[id] = coords[i].tolist()
         
+        # *  set projections in dataset
         for i in range(self.datasets[datasetId].instanceLen):
             self.datasets[datasetId]._projections[self.datasets[datasetId].ids[i]] = coords[i]
-
-        # return coordsDict
-
-
-        _D_k = D_k
-
-        # compute D_K if not previously calculated
-        if _D_k == None:
-            # * K Distance matrix
-            _D_k = self.compute_D_k(
-                datasetId,
-                begin,
-                end,
-                self.getDatasetEmotions(datasetId),
-                distanceType
-            )
         
-        return coordsDict, _D_k
-        # _D_k = D_k
-
-        # # compute D_K if not previously calculated
-        # if _D_k == None:
-        #     # * K Distance matrix
-        #     _D_k = self.compute_D_k(
-        #         datasetId,
-        #         begin,
-        #         end,
-        #         self.getDatasetEmotions(datasetId),
-        #         distanceType
-        #     )
-
-        # # * Distance matrix
-        # D = compute_distance_matrix(
-        #     _D_k, alphas, self.datasets[datasetId].instanceLen)
-
-        # # * Projection
-        # self.datasets[datasetId].compute_projection(
-        #     D,
-        #     projectionAlg=projectionAlg,
-        #     projectionParam=projectionParam
-        # )
-
-        # coords = np.array([self.datasets[datasetId]._projections[id]
-        #                   for id in self.datasets[datasetId].ids])
-
-        # if isinstance(oldCoords, np.ndarray):
-        #     P = coords
-        #     Q = oldCoords
-        #     A = P.transpose().dot(Q)
-        #     u, s, vt = np.linalg.svd(A, full_matrices=True)
-        #     v = vt.transpose()
-        #     ut = u.transpose()
-        #     r = np.sign(np.linalg.det(v.dot(ut)))
-        #     R = v.dot(np.array([[1, 0], [0, r]])).dot(ut)
-        #     coords = R.dot(P.transpose()).transpose()
-
-        # coords = scale_layout(coords)
-        # # return coords as dict
-        # coordsDict = {}
-        # ids = self.datasets[datasetId].ids
-        # for i in range(len(ids)):
-        #     id = ids[i]
-        #     coordsDict[id] = coords[i].tolist()
-
-        # return coordsDict, _D_k
+        self.mts_representations[datasetId] = mts_representations;
+        return coordsDict
+        
 
     def dbscan_clustering(self, datasetId, coords, eps=0.2, min_samples=10):
         # def doClustering(self, datasetId, coords, k=4):
@@ -411,19 +421,60 @@ class AppController:
         )
         return clusters
 
-    def getFishersDiscriminantRanking(self, datasetId, D_ks, blueCluster, redCluster):
-        ids = self.datasets[datasetId].ids
-
-        blueIndexes = [ids.index(e) for e in blueCluster]
-        redIndexes = [ids.index(e) for e in redCluster]
-
-        # j_s = fishersDiscriminantRanking(D_ks, blueIndexes, redIndexes)
-        
-
+    def getFishersDiscriminantRanking(self, datasetId, blueCluster, redCluster):
+        dataset = self.datasets[datasetId]
+        variables = dataset.temporalVariables
         variablesRanks = {}
-        variables = list(D_ks.keys())
-        for varName in variables:
-            variablesRanks[varName] = j_s[varName]
+        ids = dataset.ids
+        representations = self.mts_representations[datasetId]
+        D = dataset.variablesLen
+        u_ind = [ids.index(e) for e in blueCluster]
+        v_ind = [ids.index(e) for e in redCluster]
+
+        varReprLen = int(len(representations[0]) // D)
+
+        for i in range(D):
+            print(representations.shape)
+            # print(representations)
+            varRepr = representations[:, i * varReprLen : (i + 1) * varReprLen ]
+            variable = variables[i]
+
+            u = varRepr[u_ind]
+            v = varRepr[v_ind]
+
+            u_mean = np.mean(u, axis=0)
+            v_mean = np.mean(v, axis=0)
+
+            u_var = np.var(u, axis=0)
+            v_var = np.var(v, axis=0)
+
+            # print(f"u: {u}")
+            # print(f"v: {v}")
+            print(f"u_m: {u_mean}")
+            print(f"v_m: {v_mean}")
+            print(f"u_s: {u_var}")
+            print(f"v_s: {v_var}")
+            print(f"repr shape: {representations.shape}")
+            print(f"u shape: {u.shape}")
+            print(f"v shape: {v.shape}")
+            print(u_mean.shape)
+            print(v_mean.shape)
+
+            # variablesRanks[variable] = np.linalg.norm(u_mean - v_mean) / (np.linalg.norm(u_var) + np.linalg.norm(v_var))
+            variablesRanks[variable] = i * 0.1
+            print(f"rank: {variable} -> {variablesRanks[variable]}")
+
+            # variablesRanks[variable] = j_s[varName]
+        print(variablesRanks)
+
+
+
+
+        # j_s = fishersDiscriminantRanking(D_ks, blueIndexes, redIndexe
+        # s)
+        # variables = list(D_ks.keys())
+        # for varName in variables:
+        #     variablesRanks[varName] = j_s[varName]
         return variablesRanks
 
     def getTemporalGroupSummary(

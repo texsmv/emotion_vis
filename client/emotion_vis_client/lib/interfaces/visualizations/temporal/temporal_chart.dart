@@ -1,6 +1,7 @@
 import 'package:emotion_vis_client/interfaces/visualizations/temporal/linear_chart/linear_chart.dart';
 import 'package:emotion_vis_client/interfaces/visualizations/temporal/polar_bars/polar_bars.dart';
 import 'package:emotion_vis_client/interfaces/visualizations/temporal/stack_chart/stack_chart.dart';
+import 'package:emotion_vis_client/interfaces/visualizations/temporal/stream_graph/stream_graph.dart';
 import 'package:emotion_vis_client/interfaces/visualizations/temporal/tagged_tunnel/tagged_tunnel.dart';
 import 'package:emotion_vis_client/interfaces/visualizations/temporal/temporal_glyph/temporal_glyph.dart';
 import 'package:emotion_vis_client/interfaces/visualizations/temporal/temporal_tunnel/temporal_tunnel.dart';
@@ -79,6 +80,12 @@ class _TemporalChartState extends State<TemporalChart> {
         visualization = TemporalTunnel(
           personModel: personModel,
           visSettings: visSettings,
+        );
+        break;
+      case TemporalVisualization.STREAM_GRAPH:
+        visualization = StreamGraph(
+          mts: personModel.toList(),
+          colors: visSettings.colorsList,
         );
         break;
       default:

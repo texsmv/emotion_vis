@@ -1,4 +1,5 @@
 enum TemporalVisualization {
+  STREAM_GRAPH,
   LINEAR_CHART,
   STACKED_CHART,
   POLAR_BARS,

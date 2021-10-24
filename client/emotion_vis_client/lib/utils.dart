@@ -2,7 +2,7 @@ import 'dart:core';
 import 'dart:math';
 
 import 'package:emotion_vis_client/controllers/series_controller.dart';
-import 'package:emotion_vis_client/list_shape.dart';
+import 'package:emotion_vis_client/list_extension.dart';
 import 'package:emotion_vis_client/enums/app_enums.dart';
 import 'package:emotion_vis_client/models/visualization_levels.dart';
 import 'package:flutter/material.dart';

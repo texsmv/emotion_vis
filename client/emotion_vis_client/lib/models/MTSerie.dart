@@ -23,4 +23,5 @@ class MTSerie {
   TSerie getSerie(String dimension) => timeSeries[dimension];
 
   // List<String> get variablesNames => timeSeries.keys.toList();
+
 }

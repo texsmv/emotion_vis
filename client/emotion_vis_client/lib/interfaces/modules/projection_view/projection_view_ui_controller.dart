@@ -9,7 +9,7 @@ import 'package:emotion_vis_client/repositories/series_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:tuple/tuple.dart';
-import 'package:emotion_vis_client/list_shape.dart';
+import 'package:emotion_vis_client/list_extension.dart';
 
 // enum ClusteringMethod { automatic, manual, byLabel, none }
 enum ClusteringMethod { kmeans, dbscan, categorical, none }

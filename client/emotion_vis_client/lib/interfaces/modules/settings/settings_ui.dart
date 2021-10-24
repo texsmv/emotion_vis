@@ -67,16 +67,16 @@ class SettingsUi extends GetView<SettingsUiController> {
                                 color: pColorAccent,
                                 thickness: 1,
                               ),
-                              DistanceOption(),
-                              const Divider(
-                                color: pColorAccent,
-                                thickness: 1,
-                              ),
-                              ProjectionOption(),
-                              const Divider(
-                                color: pColorAccent,
-                                thickness: 1,
-                              ),
+                              // DistanceOption(),
+                              // const Divider(
+                              //   color: pColorAccent,
+                              //   thickness: 1,
+                              // ),
+                              // ProjectionOption(),
+                              // const Divider(
+                              //   color: pColorAccent,
+                              //   thickness: 1,
+                              // ),
                               Expanded(
                                 child: GetBuilder<SettingsUiController>(
                                     builder: (_) => OptionVariables()),
@@ -189,7 +189,7 @@ class OptionWindowSize extends GetView<SettingsUiController> {
                   children: [
                     Text("Use a window size of:"),
                     Container(
-                      width: 30,
+                      width: 80,
                       child: TextField(
                         textAlign: TextAlign.center,
                         controller: controller.windowLengthController,
