@@ -1,6 +1,6 @@
 # emotion_vis_server
 emotion visualization server
-Tested with python-3.8.5
+Tested with python-3.7.12
 
 ### Requeriments
 git
@@ -26,7 +26,7 @@ python-dev
 - Be sure to activate the environment
 `$source eviz/bin/activate `
 - Run the local server
-`$python app.py`
+`$python main.py`
 
 ### Start the http server
 - Go to the ui directory
