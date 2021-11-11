@@ -84,12 +84,12 @@ class AppController:
     def __init__(self):
         self.loadedDatasets = []
         self.localDatasetsIds = [
-            "motions",
-            "wafer",
-            "libras",
-            "uwave",
-            "stand",
-            "handwritting",
+            # "motions",
+            # "wafer",
+            # "libras",
+            # "uwave",
+            # "stand",
+            # "handwritting",
             "AMIGOS_dimensional",
             "wesad",
             "case",
@@ -158,24 +158,24 @@ class AppController:
             path_info = amigos_dimensional_path_info
             paths = amigos_dimensional_paths
         
-        elif datasetId == "motions":
-            path_info = motions_path_info
-            paths = motions_paths
-        elif datasetId == "wafer":
-            path_info = wafer_path_info
-            paths = wafer_paths
-        elif datasetId == "libras":
-            path_info = libras_path_info
-            paths = libras_paths
-        elif datasetId == "uwave":
-            path_info = uwave_path_info
-            paths = uwave_paths
-        elif datasetId == "stand":
-            path_info = stand_path_info
-            paths = stand_paths
-        elif datasetId == "handwritting":
-            path_info = handwritting_path_info
-            paths = handwritting_paths
+        # elif datasetId == "motions":
+        #     path_info = motions_path_info
+        #     paths = motions_paths
+        # elif datasetId == "wafer":
+        #     path_info = wafer_path_info
+        #     paths = wafer_paths
+        # elif datasetId == "libras":
+        #     path_info = libras_path_info
+        #     paths = libras_paths
+        # elif datasetId == "uwave":
+        #     path_info = uwave_path_info
+        #     paths = uwave_paths
+        # elif datasetId == "stand":
+        #     path_info = stand_path_info
+        #     paths = stand_paths
+        # elif datasetId == "handwritting":
+        #     path_info = handwritting_path_info
+        #     paths = handwritting_paths
 
         with open('datasets/' + path_info, 'r') as file:
             dataInfoJson = file.read()
@@ -322,7 +322,6 @@ class AppController:
         begin,
         end,
         oldCoords=None,
-        # projectionAlg: ProjectionAlg = ProjectionAlg.MDS,
         projectionParam: int = 5
     ):
 

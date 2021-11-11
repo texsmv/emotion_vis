@@ -130,15 +130,14 @@ def getDatasetProjection():
         oldCoords = np.array(list(oldCoords.values()))
     alphas = json.loads(request.form.get('alphas'))
 
-    distanceType = DistanceType(distance)
-    projectionAlg = ProjectionAlg.UMAP
+    # distanceType = DistanceType(distance)
+    # projectionAlg = ProjectionAlg.UMAP
     print("parameter")
     print(projectionParameter)
     coords = appController.getProjection(
         datasetId,
         begin, end,
         oldCoords=oldCoords,
-        projectionAlg=None, # N longer used
         projectionParam=projectionParameter
     )
     return jsonify({'coords': coords})
