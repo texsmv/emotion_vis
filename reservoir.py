@@ -1,3 +1,6 @@
+#  Code from https://github.com/FilippoMB/Time-series-classification-and-clustering-with-Reservoir-Computing
+
+
 import numpy as np
 from scipy import sparse
 

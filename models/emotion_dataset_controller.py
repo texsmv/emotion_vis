@@ -1,8 +1,8 @@
 from local_datasets_info import *
-from mts.core.projections import ProjectionAlg, euclidean_distance_matrix, mds_projection, compute_k_distance_matrixes, compute_distance_matrix
+# from mts.core.projections import ProjectionAlg, euclidean_distance_matrix, mds_projection, compute_k_distance_matrixes, compute_distance_matrix
 # from mts.core.projections import mp_distance_matrix
 from mts.core.utils import mtserieQueryToJsonStr, subsetSeparationRanking, fishersDiscriminantRanking, scale_layout
-from mts.core.distances import DistanceType, ts_euclidean_distance
+# from mts.core.distances import DistanceType, ts_euclidean_distance
 from sklearn.metrics.pairwise import cosine_similarity
 from utils.utils import mtserie_from_json
 from mts.core.mtserie_dataset import MTSerieDataset
@@ -16,14 +16,16 @@ import sys
 import json
 import umap
 
-sys.path.insert(1, '/home/texs/Documents/Kusisqa/repositories/Time-series-classification-and-clustering-with-Reservoir-Computing/code')
+# sys.path.insert(1, '/home/texs/Documents/Kusisqa/repositories/Time-series-classification-and-clustering-with-Reservoir-Computing/code')
 
 sys.path.append("..")
 
-from modules import RC_model
+# from modules import RC_model
 from esn_ae_v2 import EsnAe2
 
-
+N_EPOCHS = 2000
+EMBEDDED_SIZE = 100
+INTERNAL_UNITS = 100
 INFO_MIN_VALUES = "globalEmotionMin"
 INFO_MAX_VALUES = "globalEmotionMax"
 INFO_SERIES_LABELS = "seriesLabels"
@@ -304,14 +306,15 @@ class AppController:
             dataInfo[INFO_DOWNSAMPLE_RULES] = self.datasets[datasetId].allowedDownsampleRules
         return dataInfo
 
-    def compute_D_k(self, datasetId, begin, end, variables, distanceType=DistanceType.EUCLIDEAN):
-        D_k = compute_k_distance_matrixes(
-            list(self.datasets[datasetId].get_mtseries_in_range(
-                begin, end).values()),
-            variables,
-            distanceType
-        )
-        return D_k
+    # ! deprecated
+    # def compute_D_k(self, datasetId, begin, end, variables, distanceType=DistanceType.EUCLIDEAN):
+    #     D_k = compute_k_distance_matrixes(
+    #         list(self.datasets[datasetId].get_mtseries_in_range(
+    #             begin, end).values()),
+    #         variables,
+    #         distanceType
+    #     )
+    #     return D_k
 
     def getProjection(
         self,
@@ -319,19 +322,19 @@ class AppController:
         begin,
         end,
         oldCoords=None,
-        projectionAlg: ProjectionAlg = ProjectionAlg.MDS,
+        # projectionAlg: ProjectionAlg = ProjectionAlg.MDS,
         projectionParam: int = 5
     ):
 
-        n_internal_units = 100
+        n_internal_units = INTERNAL_UNITS
         spectral_radius=0.9
         leak=None
         connectivity=0.35
         input_scaling=0.1
         noise_level=0.01
         circle=False
-        n_epochs = 2000
-        embedding_size = 100
+        n_epochs = N_EPOCHS
+        embedding_size = EMBEDDED_SIZE
 
         X = self.datasets[datasetId].values()
 
@@ -355,33 +358,6 @@ class AppController:
         )
 
         mts_representations = ae.train(X)
-
-        # mts_representations = []
-        # for i in range(D):  
-        #     train = np.expand_dims(X[:,:,i], axis=2)
-        #     rcm =  RC_model(
-        #         reservoir=None,     
-        #         n_internal_units=rc_config['n_internal_units'],
-        #         spectral_radius=rc_config['spectral_radius'],
-        #         leak=rc_config['leak'],
-        #         connectivity=rc_config['connectivity'],
-        #         input_scaling=rc_config['input_scaling'],
-        #         noise_level=rc_config['noise_level'],
-        #         circle=rc_config['circ'],
-        #         n_drop=rc_config['n_drop'],
-        #         bidir=rc_config['bidir'],
-        #         dimred_method=rc_config['dimred_method'], 
-        #         n_dim=rc_config['n_dim'],
-        #         mts_rep=rc_config['mts_rep'],
-        #         w_ridge_embedding=rc_config['w_ridge_embedding'],
-        #         readout_type=rc_config['readout_type'] 
-        #     )
-        #     rcm.train(train)
-        #     ts_representations = rcm.input_repr
-        #     mts_representations += [ts_representations]
-        
-        # mts_representations = np.concatenate(np.array(mts_representations), axis=1)
-
 
         similarity_matrix = cosine_similarity(mts_representations)
         similarity_matrix = (similarity_matrix + 1.0)/2.0

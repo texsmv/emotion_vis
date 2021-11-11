@@ -3,8 +3,8 @@ import json
 import os
 from .mtserie import MTSerie
 from numpy import unique
-from .distances import DistanceType
-from .projections import distance_matrix, ProjectionAlg, mds_projection, umap_projection, tsne_projection, isomap_projection
+# from .distances import DistanceType
+# from .projections import distance_matrix, ProjectionAlg, mds_projection, umap_projection, tsne_projection, isomap_projection
 from sklearn.cluster import SpectralClustering, KMeans, DBSCAN, OPTICS
 
 
@@ -152,67 +152,70 @@ class MTSerieDataset:
         else:
             return self.mtseries[id]
 
-    def compute_k_distance_matrix(self, variables=[], alphas={}, distanceType=DistanceType.EUCLIDEAN, L=10, procesed=True):
-        _variables = variables
-        if len(variables) == 0:
-            _variables = self.temporalVariables
+    # ! deprecated
+    # def compute_k_distance_matrix(self, variables=[], alphas={}, distanceType=DistanceType.EUCLIDEAN, L=10, procesed=True):
+    #     _variables = variables
+    #     if len(variables) == 0:
+    #         _variables = self.temporalVariables
 
-        _alphas = alphas
-        if len(alphas) == 0:
-            _alphas = {var: 1.0 for var in variables}
+    #     _alphas = alphas
+    #     if len(alphas) == 0:
+    #         _alphas = {var: 1.0 for var in variables}
 
-        assert len(_alphas) == len(_variables)
+    #     assert len(_alphas) == len(_variables)
 
-        self._distanceMatrix, self._distanceMatrix_k = distance_matrix(
-            self.get_mtseries(procesed=procesed), variables=_variables,
-            alphas=_alphas, distanceType=distanceType, L=L
-        )
+    #     self._distanceMatrix, self._distanceMatrix_k = distance_matrix(
+    #         self.get_mtseries(procesed=procesed), variables=_variables,
+    #         alphas=_alphas, distanceType=distanceType, L=L
+    #     )
 
-    def compute_distance_matrix(self, variables=[], alphas=[], distanceType=DistanceType.EUCLIDEAN, L=10, procesed=True):
-        '''
-        Implementation of distance matrix defined in "Interactive visualization of multivariate time series data"
+    # ! deprecated
+    # def compute_distance_matrix(self, variables=[], alphas=[], distanceType=DistanceType.EUCLIDEAN, L=10, procesed=True):
+    #     '''
+    #     Implementation of distance matrix defined in "Interactive visualization of multivariate time series data"
 
-        Args:
-            distanceType (DistanceType, optional): Distance to compare mtseries. Defaults to DistanceType.EUCLIDEAN.
-            L (int, optional): Window size used for MPdist. Defaults to 10.
-        '''
-        _variables = variables
-        if len(variables) == 0:
-            _variables = self.temporalVariables
+    #     Args:
+    #         distanceType (DistanceType, optional): Distance to compare mtseries. Defaults to DistanceType.EUCLIDEAN.
+    #         L (int, optional): Window size used for MPdist. Defaults to 10.
+    #     '''
+    #     _variables = variables
+    #     if len(variables) == 0:
+    #         _variables = self.temporalVariables
 
-        _alphas = alphas
-        if len(alphas) == 0:
-            _alphas = np.ones(len(_variables))
-        assert len(_alphas) == len(_variables)
+    #     _alphas = alphas
+    #     if len(alphas) == 0:
+    #         _alphas = np.ones(len(_variables))
+    #     assert len(_alphas) == len(_variables)
 
-        self._distanceMatrix, self._distanceMatrix_k = distance_matrix(
-            self.get_mtseries(procesed=procesed), variables=_variables,
-            alphas=_alphas, distanceType=distanceType, L=L
-        )
+    #     self._distanceMatrix, self._distanceMatrix_k = distance_matrix(
+    #         self.get_mtseries(procesed=procesed), variables=_variables,
+    #         alphas=_alphas, distanceType=distanceType, L=L
+    #     )
 
     # def compute_projection(self):
     #     coords = mds_projection(self._distanceMatrix)
     #     for i in range(self.instanceLen):
     #         self._projections[self.ids[i]] = coords[i]
 
-    def compute_projection(
-        self,
-        D,
-        projectionAlg: ProjectionAlg = ProjectionAlg.MDS,
-        projectionParam: int = 5
-    ):
-        coords = None
-        if projectionAlg == ProjectionAlg.MDS:
-            coords = mds_projection(D)
-        elif projectionAlg == ProjectionAlg.ISOMAP:
-            coords = isomap_projection(D, n_neighbors=projectionParam)
-        elif projectionAlg == ProjectionAlg.TSNE:
-            coords = tsne_projection(D, perplexity=projectionParam)
-        elif projectionAlg == ProjectionAlg.UMAP:
-            coords = umap_projection(D, n_neighbors=projectionParam)
+    #  deprecated
+    # def compute_projection(
+    #     self,
+    #     D,
+    #     projectionAlg: ProjectionAlg = ProjectionAlg.MDS,
+    #     projectionParam: int = 5
+    # ):
+    #     coords = None
+    #     if projectionAlg == ProjectionAlg.MDS:
+    #         coords = mds_projection(D)
+    #     elif projectionAlg == ProjectionAlg.ISOMAP:
+    #         coords = isomap_projection(D, n_neighbors=projectionParam)
+    #     elif projectionAlg == ProjectionAlg.TSNE:
+    #         coords = tsne_projection(D, perplexity=projectionParam)
+    #     elif projectionAlg == ProjectionAlg.UMAP:
+    #         coords = umap_projection(D, n_neighbors=projectionParam)
 
-        for i in range(self.instanceLen):
-            self._projections[self.ids[i]] = coords[i]
+    #     for i in range(self.instanceLen):
+    #         self._projections[self.ids[i]] = coords[i]
 
     def downsample_data(self, rule):
         for i in range(self.instanceLen):

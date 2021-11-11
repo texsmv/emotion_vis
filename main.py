@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from sklearn import cluster
 from mts.core.mtserie_dataset import MTSerieDataset
-from mts.core.projections import ProjectionAlg
+# from mts.core.projections import ProjectionAlg
 from models.emotion_dataset_controller import *
 
 import json
@@ -138,7 +138,7 @@ def getDatasetProjection():
         datasetId,
         begin, end,
         oldCoords=oldCoords,
-        projectionAlg=projectionAlg,
+        projectionAlg=None, # N longer used
         projectionParam=projectionParameter
     )
     return jsonify({'coords': coords})
